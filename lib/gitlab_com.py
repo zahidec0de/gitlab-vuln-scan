@@ -10,6 +10,7 @@ the webpack manifest hash (lib/hashdb.py, lib/registry.py) is what still
 works everywhere.
 """
 import json
+import urllib.error
 import urllib.request
 
 API = "https://gitlab.com/api/v4"
@@ -19,26 +20,44 @@ API = "https://gitlab.com/api/v4"
 # CE mirror -- tags there have no suffix (e.g. v19.1.2). A given commit will
 # only resolve on whichever repo it was actually built/tagged from, so we
 # check both regardless of what edition the caller thinks it is.
-PROJECT_IDS = [278964, 13083]
+PROJECTS = [
+    (278964, "gitlab-org/gitlab"),
+    (13083, "gitlab-org/gitlab-foss"),
+]
 
 
 def resolve_commit_to_versions(commit_hash, timeout=15):
     """
-    Returns a sorted list of {"version": "18.11.7", "edition": "enterprise"}
-    dicts for every release tag containing this commit, across both the EE
-    and CE-foss repos. Empty list if it couldn't be resolved anywhere.
-    """
-    results = {}
+    Queries gitlab.com for every release tag containing `commit_hash`.
 
-    for project_id in PROJECT_IDS:
+    Returns a dict:
+      {
+        "versions": [{"version": "18.11.7", "edition": "enterprise", "tag": "v18.11.7-ee"}, ...],
+        "queries": [{"project": "gitlab-org/gitlab", "url": "...", "http_status": 200, "matched_tags": [...]}, ...],
+      }
+    `queries` is included even on a miss, so callers/users can see exactly
+    which URL was hit and re-run it themselves (`curl <url>`).
+    """
+    versions = {}
+    queries = []
+
+    for project_id, project_path in PROJECTS:
         url = f"{API}/projects/{project_id}/repository/commits/{commit_hash}/refs?type=tag"
+        query_record = {"project": project_path, "url": url, "http_status": None, "matched_tags": []}
+        queries.append(query_record)
+
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "gitlab-version-scan/1.0"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
+                query_record["http_status"] = r.status
                 if r.status != 200:
                     continue
                 refs = json.load(r)
-        except Exception:
+        except urllib.error.HTTPError as e:
+            query_record["http_status"] = e.code
+            continue
+        except Exception as e:
+            query_record["http_status"] = f"error: {e}"
             continue
 
         for ref in refs:
@@ -53,6 +72,11 @@ def resolve_commit_to_versions(commit_hash, timeout=15):
             elif v.endswith("-ce"):
                 v = v[: -len("-ce")]
             if v and v[0].isdigit():
-                results[(v, edition)] = True
+                query_record["matched_tags"].append(name)
+                versions[(v, edition)] = name
 
-    return sorted(({"version": v, "edition": e} for (v, e) in results.keys()), key=lambda r: (r["version"], r["edition"]))
+    version_list = sorted(
+        ({"version": v, "edition": e, "tag": tag} for (v, e), tag in versions.items()),
+        key=lambda r: (r["version"], r["edition"]),
+    )
+    return {"versions": version_list, "queries": queries}

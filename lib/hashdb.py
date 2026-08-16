@@ -21,15 +21,17 @@ def lookup(db, webpack_hash=None, commit_hash=None):
     """
     Mirrors gitlab_version.nse's get_banner(): prefer a commit-hash prefix
     match (more specific, when available), fall back to exact webpack hash.
-    Returns the {"build": ..., "versions": [...]} entry, or None.
+
+    Returns (banner, matched_key, match_type) where match_type is
+    "commit_hash" or "webpack_hash", or (None, None, None) if nothing hit.
     """
     if commit_hash:
         for key, value in db.items():
             if isinstance(key, str) and key.startswith(commit_hash):
-                return value
+                return value, key, "commit_hash"
     if webpack_hash and webpack_hash in db:
-        return db[webpack_hash]
-    return None
+        return db[webpack_hash], webpack_hash, "webpack_hash"
+    return None, None, None
 
 
 def edition_for(build):

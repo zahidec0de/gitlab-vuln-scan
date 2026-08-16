@@ -1,25 +1,44 @@
 #!/usr/bin/env python3
 """
-Directly verify a claimed GitLab version against a live target -- no
-dictionary lookup, no guessing. Pulls the *exact* webpack manifest hash for
-the claimed version straight from Docker Hub's registry (streamed, no
-`docker pull` needed) and diffs it against what the live host actually
-serves.
+Confirm or refute one specific claimed GitLab version against a live target.
+No dictionary lookup, no guessing: pulls the *exact* webpack manifest hash
+for the claimed version straight from Docker Hub's registry (streamed --
+no `docker pull` / Docker daemon needed) and diffs it byte-for-byte against
+what the live host actually serves.
 
 Use this when:
-  - a vendor/scanner claims a specific version and you want to confirm it
-  - the hash isn't in gitlab_hashes.json yet (brand new release)
+  - a vendor/scanner claims a specific version and you want a hard yes/no
+  - scan.py returned "hash not in db" (a release too new for the local
+    dictionary) or an ambiguous range and you want to test one candidate
 
-Usage:
-    python3 verify_version.py --target HOST:PORT --version 18.11.7 --edition ee
-    python3 verify_version.py --target HOST:PORT --version 19.1.2 --edition ce --subdir /gitlab
+USAGE
+  python3 verify_version.py --target HOST:PORT --version 18.11.7 --edition ee
+  python3 verify_version.py --target HOST:PORT --version 19.1.2 --edition ce --subdir /gitlab
+  python3 verify_version.py --target HOST:PORT --version 18.11.7 --edition ee --json
+
+EXIT CODE
+  0  confirmed match
+  1  mismatch (target is running something else)
+  2  error (target unreachable, or the claimed version's docker tag doesn't exist)
+
+EXAMPLE
+  $ python3 verify_version.py --target gitlab-g.drahim.sa:443 --version 18.11.7 --edition ee
+  CONFIRMED: gitlab-g.drahim.sa:443 is running GitLab ee 18.11.7
+    live hash      : d6a77cf456c325839dc9  (from https://gitlab-g.drahim.sa:443/assets/webpack/manifest.json)
+    reference hash : d6a77cf456c325839dc9  (from gitlab/gitlab-ee:18.11.7-ee.0 (Docker Hub registry, streamed))
 """
 import argparse
+import json
 import sys
 
 from lib import registry, target
 
 REPO_BY_EDITION = {"ce": "gitlab/gitlab-ce", "ee": "gitlab/gitlab-ee"}
+
+
+def log(msg, quiet):
+    if not quiet:
+        print(msg, file=sys.stderr)
 
 
 def main():
@@ -30,7 +49,8 @@ def main():
     ap.add_argument("--tag-suffix", default=".0", help="docker tag suffix (default: .0, i.e. VERSION-ce.0)")
     ap.add_argument("--subdir", default="")
     ap.add_argument("--timeout", type=float, default=15)
-    ap.add_argument("--no-insecure", action="store_true")
+    ap.add_argument("--no-insecure", action="store_true", help="verify TLS certs (default: don't)")
+    ap.add_argument("--json", action="store_true", help="output machine-readable JSON instead of text")
     args = ap.parse_args()
 
     if ":" in args.target:
@@ -40,39 +60,85 @@ def main():
 
     repo = REPO_BY_EDITION[args.edition]
     tag = f"{args.version}-{args.edition}{args.tag_suffix}"
+    docker_ref = f"{repo}:{tag}"
 
-    print(f"[*] fetching live fingerprint from {host}:{port}", file=sys.stderr)
+    result = {
+        "target": args.target,
+        "claimed_version": args.version,
+        "claimed_edition": args.edition,
+        "docker_ref": docker_ref,
+        "live_hash": None,
+        "live_hash_source": None,
+        "reference_hash": None,
+        "reference_hash_source": f"{docker_ref} (Docker Hub registry, streamed)",
+        "result": None,
+        "errors": [],
+    }
+
+    log(f"[*] fetching live fingerprint from {args.target}", args.json)
     fp = target.fetch_target_fingerprint(host, port, subdir=args.subdir, timeout=args.timeout, insecure=not args.no_insecure)
-    for err in fp["errors"]:
-        print(f"    ! {err}", file=sys.stderr)
+    result["errors"].extend(fp["errors"])
+    result["live_hash"] = fp["webpack_hash"]
+    result["live_hash_source"] = fp["manifest_url"]
 
     if fp["webpack_hash"] is None:
-        print("ERROR: could not read a webpack manifest hash from the target", file=sys.stderr)
+        result["result"] = "error"
+        result["error"] = "could not read a webpack manifest hash from the target"
+        _emit(result, args.json)
         sys.exit(2)
 
-    print(f"[*] live webpack hash:   {fp['webpack_hash']}", file=sys.stderr)
-    print(f"[*] pulling ground-truth hash for {repo}:{tag} from Docker Hub (streaming, no docker pull)...", file=sys.stderr)
+    log(f"[*] live webpack hash:   {fp['webpack_hash']}", args.json)
+    log(f"[*] pulling ground-truth hash for {docker_ref} from Docker Hub (streaming, no docker pull)...", args.json)
 
-    webpack_hash, commit_hash = registry.fetch_manifest_hash(repo, tag, log=lambda m: print(m, file=sys.stderr))
+    try:
+        webpack_hash, commit_hash = registry.fetch_manifest_hash(repo, tag, log=lambda m: log(m, args.json))
+    except Exception as e:
+        result["result"] = "error"
+        result["error"] = f"failed to fetch {docker_ref}: {e}"
+        _emit(result, args.json)
+        sys.exit(2)
+
+    result["reference_hash"] = webpack_hash
+    result["reference_commit_hash"] = commit_hash
 
     if webpack_hash is None:
-        print(f"ERROR: couldn't extract manifest.json from {repo}:{tag} -- does that tag exist?", file=sys.stderr)
+        result["result"] = "error"
+        result["error"] = f"couldn't extract manifest.json from {docker_ref} -- does that tag exist?"
+        _emit(result, args.json)
         sys.exit(2)
 
-    print(f"[*] {tag} webpack hash:  {webpack_hash}", file=sys.stderr)
-    print()
+    log(f"[*] {tag} webpack hash:  {webpack_hash}", args.json)
+    log("", args.json)
 
     if fp["webpack_hash"] == webpack_hash:
-        print(f"CONFIRMED: {host}:{port} is running GitLab {args.edition} {args.version}")
-        print(f"  (webpack manifest hash matches exactly: {webpack_hash})")
+        result["result"] = "confirmed"
+        _emit(result, args.json)
         sys.exit(0)
     else:
-        print(f"MISMATCH: {host}:{port} is NOT running GitLab {args.edition} {args.version}")
-        print(f"  target hash:  {fp['webpack_hash']}")
-        print(f"  {args.version} hash: {webpack_hash}")
-        print(f"  Run scan.py against this target to find its actual version, or try adjacent")
-        print(f"  patch versions with this script if you suspect it's just off by a patch level.")
+        result["result"] = "mismatch"
+        _emit(result, args.json)
         sys.exit(1)
+
+
+def _emit(result, as_json):
+    if as_json:
+        print(json.dumps(result, indent=2))
+        return
+
+    t, v, e = result["target"], result["claimed_version"], result["claimed_edition"]
+    if result["result"] == "confirmed":
+        print(f"CONFIRMED: {t} is running GitLab {e} {v}")
+        print(f"  live hash      : {result['live_hash']}  (from {result['live_hash_source']})")
+        print(f"  reference hash : {result['reference_hash']}  (from {result['reference_hash_source']})")
+    elif result["result"] == "mismatch":
+        print(f"MISMATCH: {t} is NOT running GitLab {e} {v}")
+        print(f"  live hash      : {result['live_hash']}  (from {result['live_hash_source']})")
+        print(f"  reference hash : {result['reference_hash']}  (from {result['reference_hash_source']})")
+        print(f"  Next step: python3 scan.py {t}  -- to find what it's actually running")
+    else:
+        print(f"ERROR: {result.get('error')}")
+    for err in result["errors"]:
+        print(f"  ! {err}")
 
 
 if __name__ == "__main__":
