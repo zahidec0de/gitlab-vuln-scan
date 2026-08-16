@@ -87,7 +87,11 @@ python3 scan.py gitlab.example.com:443
 ```
 python3 scan.py gitlab.example.com:443 10.0.0.5:8443 10.0.0.6:443
 ```
-More than one target prints a summary table at the end.
+More than one target adds a summary table at the end: one row per server
+with its version and, with `--cves`, its highest CVSS score. With `--cves`
+this is followed by a second table, "Findings", listing every affected CVE
+across all servers in one place, each row carrying its own server and
+version, so it can be copied straight into a report.
 
 **"I want to know if a server has any known vulnerabilities."**
 ```

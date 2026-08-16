@@ -142,17 +142,13 @@ def print_text(r, show_all_cves=False):
         kv("Edition", f"GitLab {r['edition']}")
         if r["ambiguous"]:
             others = ", ".join(v for v in r["versions"] if v != floor)
-            kv("Version", f"{floor} (confirmed floor)")
-            kv("Also possible", others)
-            print(fmt.kv_wrapped("Note", [
-                "These releases share the same build fingerprint and cannot be told",
-                "apart remotely. Run verify_version.py to pin one exactly.",
-            ], width=LABEL_WIDTH))
+            kv("Version", f"{floor} (floor, exact patch not distinguishable remotely)")
+            kv("Also possible", fmt.dim(f"{others} (same build fingerprint as {floor}, see Verify manually below)"))
         else:
             kv("Version", floor)
         kv("Method", r["evidence"]["method"])
         print()
-        print("  Evidence:")
+        print(f"  {fmt.header('Evidence:')}")
         print(f"    webpack manifest hash : {r['evidence']['webpack_hash']}")
         print(f"      fetched from        : {r['evidence']['manifest_url']}")
         if r["evidence"]["commit_hash"]:
@@ -167,7 +163,7 @@ def print_text(r, show_all_cves=False):
             print(f"    matched in            : {r['evidence']['hashdb_source']}")
             print(f"      key ({r['evidence']['hashdb_match_type']})   : {r['evidence']['hashdb_matched_key']}")
         print()
-        print("  Verify manually (copy and run):")
+        print(f"  {fmt.header('Verify manually (copy and run):')}")
         print(f"    $ curl -sk {r['evidence']['manifest_url']} \\")
         print(f"        | python3 -c \"import json,sys; print(json.load(sys.stdin)['hash'])\"")
         if r["evidence"]["gitlab_com_queries"]:
@@ -184,7 +180,7 @@ def print_text(r, show_all_cves=False):
     elif r["status"] == "hash_not_in_db":
         kv("Status", fmt.color_label("GITLAB DETECTED, HASH NOT IN LOCAL DATABASE", "GITLAB DETECTED, HASH NOT IN LOCAL DATABASE"))
         print()
-        print("  Evidence:")
+        print(f"  {fmt.header('Evidence:')}")
         print(f"    webpack manifest hash : {r['evidence']['webpack_hash']}")
         print(f"      fetched from        : {r['evidence']['manifest_url']}")
         if r["evidence"]["commit_hash"]:
@@ -203,7 +199,7 @@ def print_text(r, show_all_cves=False):
 def print_summary(results, show_cves):
     if len(results) < 2:
         return
-    print("Summary:")
+    print(fmt.header("Summary:"))
     if show_cves:
         rows = []
         for r in results:
@@ -219,14 +215,16 @@ def print_summary(results, show_cves):
                 r["target"], r["edition"] or "-", r["confirmed_floor"] or "-",
                 flag, f"{highest:.1f}" if highest is not None else "-",
             ])
-        fmt.print_table(["TARGET", "EDITION", "VERSION", "CVE FINDINGS", "MAX CVSS"], rows, indent="  ")
+        fmt.print_table(["TARGET", "EDITION", "VERSION", "CVE FINDINGS", "MAX CVSS"], rows, indent="  ", align=["l", "l", "l", "l", "r"])
+        print()
+        fmt.print_findings_table(results, indent="  ")
     else:
         rows = [
             [r["target"], r["edition"] or "-", r["confirmed_floor"] or "-", r["status"].replace("_", " ")]
             for r in results
         ]
         fmt.print_table(["TARGET", "EDITION", "VERSION", "STATUS"], rows, indent="  ")
-    print()
+        print()
 
 
 def main():
