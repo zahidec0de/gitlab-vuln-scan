@@ -1,6 +1,6 @@
 # gitlab-vuln-scan
 
-A command-line tool that finds out what version of GitLab a server is
+This tool finds out what version of GitLab a server is
 running, and checks that version against known CVEs. It works without
 logging in and without nmap, and it shows the raw evidence behind every
 result so you can double-check it manually.
@@ -16,11 +16,11 @@ $ python3 scan.py --cves gitlab.example.com:443
 
   Evidence:
     webpack manifest hash : 3f9a1c7e2b8d4f6a1c9e
-      fetched from      : https://gitlab.example.com:443/assets/webpack/manifest.json
+      fetched from        : https://gitlab.example.com:443/assets/webpack/manifest.json
     build commit hash     : 7b2e9f0a1d3
-      fetched from      : https://gitlab.example.com:443/users/sign_in (gon.revision)
+      fetched from        : https://gitlab.example.com:443/users/sign_in (gon.revision)
     resolved via          : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
-      matching tags     : v17.4.2-ee
+      matching tags       : v17.4.2-ee
 
   Verify manually (copy and run):
     Webpack hash
@@ -36,28 +36,31 @@ $ python3 scan.py --cves gitlab.example.com:443
 ```
 
 Section headers (`Evidence:`, `Verify manually:`, `CVE audit:`) are shown
-in color on a real terminal, along with the status line and each CVE's
-severity, so the important parts stand out at a glance. Colors are skipped
-automatically when the output isn't a terminal (e.g. piped to a file), and
-always with the `NO_COLOR` environment variable set.
+in color on a real terminal, and the detected version is highlighted so it
+stands out from the surrounding text, along with the status line and each
+CVE's severity. Colors are skipped automatically when the output is not a
+terminal (for example, piped to a file), and always when the `NO_COLOR`
+environment variable is set.
 
-## Why this isn't as simple as it sounds
+## Why this is not as simple as it sounds
 
-GitLab doesn't show its version number to visitors who aren't logged in.
-Older tools used to read it off the `/help` page or a hidden field on the
-login page. GitLab has since removed both.
+GitLab does not show its version number to visitors who are not logged
+in. Older tools used to read it off the `/help` page or a hidden field on
+the login page. GitLab has since removed both.
 
 One thing is still public on almost every version: the hash of GitLab's
 own front-end asset bundle, at `/assets/webpack/manifest.json`. The
-browser has to fetch this file before login even works, so it can't be
+browser has to fetch this file before login even works, so it cannot be
 hidden. This tool reads that hash and looks up which GitLab version, or
 versions, produced it.
 
 Sometimes more than one version shares the exact same hash. This usually
 happens when a patch release only changed backend code, not the front
-end. When that happens, the tool tells you the lowest version it could be
-(the "floor") and points you to a second command, `verify_version.py`,
-that can pin down the exact one.
+end. When that happens, the tool states the lowest matching version as
+confirmed, since the server is certainly running at least that one, and
+names the later patches it could also be, since those happen to share the
+same build. A second command, `verify_version.py`, can pin down the exact
+one.
 
 ---
 
@@ -132,7 +135,7 @@ python3 scan.py --cves HOST:PORT [HOST:PORT ...]
 1. The webpack asset hash at `/assets/webpack/manifest.json`.
 2. The build commit shown at `/users/sign_in`. This is only present on
    some versions, since GitLab has been phasing it out.
-3. If step 2 found something, it's checked directly against gitlab.com's
+3. If step 2 found something, it is checked directly against gitlab.com's
    own records. This is exact and always up to date.
 4. Otherwise, the webpack hash is looked up in `gitlab_hashes.json`, a
    local file built from every official GitLab Docker image.
@@ -182,7 +185,7 @@ python3 verify_version.py --target HOST:PORT --version 17.4.2 --edition ee --cve
 
 It downloads the real hash for that exact version straight from Docker
 Hub (no need to install Docker) and compares it byte-for-byte against
-what the server returns. If they match, it's confirmed, not guessed.
+what the server returns. If they match, it is confirmed, not guessed.
 
 ```
 $ python3 verify_version.py --target gitlab.example.com:443 --version 17.4.2 --edition ee
@@ -209,7 +212,7 @@ nmap <target> --script ./gitlab_version.nse
 ```
 
 Use `scan.py` instead if you want the CVE check, the gitlab.com lookup,
-or JSON output. This script doesn't have those.
+or JSON output. This script does not have those.
 
 ---
 

@@ -18,7 +18,7 @@ DETECTION METHOD (tried in this order, per target):
      or --remote-db to pull the upstream copy from GitHub).
 
 A result can legitimately map to more than one version. Some patch
-releases don't change the frontend bundle or the gitlab-rails build at
+releases do not change the frontend bundle or the gitlab-rails build at
 all, for example a base-image-only rebuild, so several versions can share
 an identical fingerprint. When that happens the tool says so explicitly
 and reports the lowest version as the confirmed floor. Run
@@ -27,7 +27,7 @@ verify_version.py against a specific candidate to narrow further.
 CVE AUDIT (--cves): each candidate version is checked against every
 documented "from X before Y" affected range in gitlab_cves.json. If all
 candidates fall in the affected range, the result is VULNERABLE. If none
-do, it's NOT VULNERABLE. If the candidates straddle a fix boundary, the
+do, the result is NOT VULNERABLE. If the candidates straddle a fix boundary, the
 result is NEEDS VERIFICATION, since the true verdict depends on the exact
 patch level. Pin it with verify_version.py first.
 
@@ -58,26 +58,28 @@ from lib import cve_db, format as fmt, gitlab_com, hashdb, target
 LABEL_WIDTH = 13
 # Fixed widths for the Evidence block's label columns, rather than computed
 # per call, so every target in a multi-target scan lines up identically
-# regardless of which optional evidence lines it happens to have. Sized to
-# the longest label that can appear at each level, plus one column so the
-# longest label still gets a visible gap before its colon.
+# regardless of which optional evidence lines it happens to have, and the
+# sub-level lines up in the *same* colon column as the top level rather
+# than its own separate one two columns over.
+EVIDENCE_INDENT = "    "
+EVIDENCE_SUB_INDENT = "      "
 EVIDENCE_LABEL_WIDTH = len("webpack manifest hash") + 1
-EVIDENCE_SUB_LABEL_WIDTH = len("key (commit_hash)") + 1
+EVIDENCE_SUB_LABEL_WIDTH = EVIDENCE_LABEL_WIDTH - (len(EVIDENCE_SUB_INDENT) - len(EVIDENCE_INDENT))
 EDITION_FLAG = {"enterprise": "ee", "community": "ce"}
 
 
 def edition_flag_for(edition):
-    """'ee'/'ce' for --edition when known, a placeholder only when it genuinely isn't."""
+    """'ee'/'ce' for --edition when known, a placeholder only when it genuinely is not."""
     return EDITION_FLAG.get(edition, "[ce|ee]")
 
 
-def oxford_list(items):
-    """['a', 'b', 'c'] -> 'a, b, or c'. ['a', 'b'] -> 'a or b'. ['a'] -> 'a'."""
+def join_list(items, conj="and"):
+    """['a', 'b', 'c'] -> 'a, b, and c'. ['a', 'b'] -> 'a and b'. ['a'] -> 'a'."""
     if len(items) <= 1:
         return items[0] if items else ""
     if len(items) == 2:
-        return f"{items[0]} or {items[1]}"
-    return f"{', '.join(items[:-1])}, or {items[-1]}"
+        return f"{items[0]} {conj} {items[1]}"
+    return f"{', '.join(items[:-1])}, {conj} {items[-1]}"
 
 
 def scan_one(hostport, subdir, timeout, insecure, db, db_source, no_gitlab_com):
@@ -117,7 +119,7 @@ def scan_one(hostport, subdir, timeout, insecure, db, db_source, no_gitlab_com):
 
     # Prefer resolving the commit hash directly against gitlab.com: exact,
     # always current, no local dictionary needed. Only some instances still
-    # expose gon.revision, so this isn't always available.
+    # expose gon.revision, so this is not always available.
     if fp["commit_hash"] and not no_gitlab_com:
         resolved = gitlab_com.resolve_commit_to_versions(fp["commit_hash"])
         result["evidence"]["gitlab_com_queries"] = resolved["queries"]
@@ -163,9 +165,13 @@ def print_text(r, show_all_cves=False):
         kv("Status", fmt.color_label("IDENTIFIED", "IDENTIFIED"))
         kv("Edition", f"GitLab {r['edition']}")
         if r["ambiguous"]:
-            kv("Version", f"{oxford_list(r['versions'])} (identical build, see Verify manually to confirm exactly)")
+            others = [v for v in r["versions"] if v != floor]
+            kv("Version", (
+                f"{fmt.highlight(floor)} - the exact patch could also be "
+                f"{join_list(others)} (identical build, see Verify manually to confirm precisely)"
+            ))
         else:
-            kv("Version", floor)
+            kv("Version", fmt.highlight(floor))
         kv("Method", r["evidence"]["method"])
         print()
 
@@ -190,7 +196,7 @@ def print_text(r, show_all_cves=False):
                 [(f"key ({r['evidence']['hashdb_match_type']})", r["evidence"]["hashdb_matched_key"])],
             ))
         print(f"  {fmt.header('Evidence:')}")
-        fmt.print_kv_block(evidence_rows, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
+        fmt.print_kv_block(evidence_rows, indent=EVIDENCE_INDENT, sub_indent=EVIDENCE_SUB_INDENT, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
 
         verify_items = [(
             "Webpack hash",
@@ -224,7 +230,7 @@ def print_text(r, show_all_cves=False):
                 "build commit hash", f"{r['evidence']['commit_hash']} (not resolvable on gitlab.com either)", None,
             ))
         print(f"  {fmt.header('Evidence:')}")
-        fmt.print_kv_block(evidence_rows, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
+        fmt.print_kv_block(evidence_rows, indent=EVIDENCE_INDENT, sub_indent=EVIDENCE_SUB_INDENT, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
         print()
         kv("Next step", r["verify_hint"])
 

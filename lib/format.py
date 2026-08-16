@@ -20,8 +20,9 @@ _LABEL_COLOR = {
     "GITLAB DETECTED, HASH NOT IN LOCAL DATABASE": "\033[33m",
     "NOT GITLAB OR UNREACHABLE": "\033[2m",
 }
-_HEADER = "\033[1;36m"  # bold cyan, used for section headers like "Evidence:"
-_DIM = "\033[2m"        # dim, used for de-emphasized helper text
+_HEADER = "\033[1;36m"    # bold cyan, used for section headers like "Evidence:"
+_DIM = "\033[2m"          # dim, used for de-emphasized helper text
+_HIGHLIGHT = "\033[1;35m"  # bold magenta, used to make the detected version stand out
 _RESET = "\033[0m"
 
 # Gap between table columns. 3 spaces reads more clearly than 2 once a
@@ -59,6 +60,11 @@ def header(text):
 def dim(text):
     """De-emphasized helper text, e.g. an aside explaining a note or a skipped-rows count."""
     return f"{_DIM}{text}{_RESET}" if color_enabled() else text
+
+
+def highlight(text):
+    """The one value in a block that should catch the eye first, e.g. the detected version."""
+    return f"{_HIGHLIGHT}{text}{_RESET}" if color_enabled() else text
 
 
 def kv(label, value, width=14, indent="  "):

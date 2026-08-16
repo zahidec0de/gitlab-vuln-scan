@@ -5,12 +5,12 @@ recently published GitLab CVEs, and parsing GitLab's standard advisory
 phrasing, "affecting all versions from X before Y[, A before B, ...]",
 into the structured affected-range format the rest of this tool consumes.
 
-CVEs whose description doesn't match that phrasing (rare, but it happens)
-are still recorded, with "affected": [] and "needs_manual_review": true,
-rather than silently dropped. Check those by hand against the linked
-GitLab patch-release notes and fill in the ranges.
+CVEs whose description does not match that phrasing (rare, but it
+happens) are still recorded, with "affected": [] and
+"needs_manual_review": true, rather than silently dropped. Check those by
+hand against the linked GitLab patch-release notes and fill in the ranges.
 
-This never touches an existing entry that NVD doesn't know about yet, so a
+This never touches an existing entry that NVD does not know about yet, so a
 CVE that was hand-entered from GitLab's own release notes ahead of NVD
 publishing it (see CVE-2026-10053 in gitlab_cves.json) is left alone until
 NVD actually has it.
@@ -52,7 +52,7 @@ TITLE_MAX_LEN = 140
 # "<lead-in> in GitLab CE/EE affecting all versions from X before Y[, ...]
 # that/which/where <the actual vulnerability>." A title made by truncating
 # that from the start is just the boilerplate lead-in. The useful part is
-# whichever side of the version-range clause isn't boilerplate.
+# whichever side of the version-range clause is not boilerplate.
 _TITLE_LEADING_FILLER_RE = re.compile(
     r"^[\s,;:]*(?:and|that|which|where|in which|with|under certain conditions|"
     r"could have allowed|could allow|may have allowed|may lead to|"
@@ -134,7 +134,7 @@ def extract_title(description, max_len=TITLE_MAX_LEN):
 
     Strategy: find where the version-range clause ends, take everything
     after it (usually "... that could allow X due to Y"), and strip the
-    connective words. If that's too short, meaning the range clause was at
+    connective words. If that is too short, meaning the range clause was at
     the very end of the sentence instead, fall back to everything before
     the range clause, stripping the generic lead-in phrase.
     """

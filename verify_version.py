@@ -19,7 +19,7 @@ USAGE
 EXIT CODE
   0  confirmed match
   1  mismatch, the target is running something else
-  2  error, e.g. the target is unreachable or the claimed version's docker tag doesn't exist
+  2  error, e.g. the target is unreachable or the claimed version's docker tag does not exist
 
 Add --cves to also audit the pinned version against gitlab_cves.json once
 confirmed. Since this checks one exact version rather than a range, the
@@ -151,7 +151,7 @@ def _emit(result, as_json, show_all_cves=False):
     kv("Asset", t)
     if result["result"] == "confirmed":
         kv("Status", fmt.color_label("CONFIRMED", "CONFIRMED"))
-        kv("Claimed", f"GitLab {e} {v}")
+        kv("Claimed", f"GitLab {e} {fmt.highlight(v)}")
         kv("Live hash", f"{result['live_hash']} (from {result['live_hash_source']})")
         kv("Reference hash", f"{result['reference_hash']} (from {result['reference_hash_source']})")
         if result["cve_audit"] is not None:

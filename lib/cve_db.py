@@ -67,7 +67,7 @@ def severity_for(cvss):
 def _check_one_cve(candidate_versions, entry):
     """
     candidate_versions: one or more version strings the target might be
-    (>1 when scan.py couldn't pin an exact patch level).
+    (>1 when scan.py could not pin an exact patch level).
 
     Returns (status, matched_ranges): status is VULNERABLE if every
     candidate falls in an affected range, NOT_VULNERABLE if none do, and
