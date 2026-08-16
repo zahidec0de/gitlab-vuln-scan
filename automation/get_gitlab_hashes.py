@@ -125,7 +125,7 @@ def process_missing_tags(hashes_dict_file, fetch_all_tags=False, budget_minutes=
                 version not in processed[build]
             ):
                 if time.monotonic() > deadline:
-                    print("Time budget (%s min) exhausted, stopping -- remaining tags will be picked up next run" % budget_minutes)
+                    print("Time budget (%s min) exhausted, stopping. Remaining tags will be picked up next run." % budget_minutes)
                     write_processed_tags(processed)
                     write_hashes_dict(hashes, hashes_dict_file)
                     return hashes

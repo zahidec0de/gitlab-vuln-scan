@@ -4,9 +4,10 @@ versions) against each CVE's documented affected ranges.
 
 Range format, matching how GitLab and NVD actually publish these (see
 gitlab_cves.json): a CVE can affect several disjoint "from X before Y"
-intervals at once, e.g. CVE-2026-15217 affects [18.2, 19.0.6), [19.1, 19.1.4),
-and [19.2, 19.2.2) simultaneously -- three different release lines, three
-different fixed versions. "from" is inclusive, "before" is exclusive.
+intervals at once. For example, CVE-2026-15217 affects [18.2, 19.0.6),
+[19.1, 19.1.4), and [19.2, 19.2.2) at the same time: three different
+release lines, each with its own fixed version. "from" is inclusive,
+"before" is exclusive.
 """
 import json
 import os
@@ -14,8 +15,8 @@ import re
 import urllib.request
 
 LOCAL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "gitlab_cves.json")
-# Placeholder until this repo is actually pushed to a fork -- update once you
-# know the real remote path, or just always pass --db/skip --remote-db.
+# Placeholder until this repo is actually pushed to a fork. Update once you
+# know the real remote path, or just always pass --db and skip --remote-db.
 REMOTE_URL = "https://raw.githubusercontent.com/zahidec0de/gitlab-vuln-scan/main/gitlab_cves.json"
 
 VULNERABLE = "vulnerable"
@@ -70,8 +71,8 @@ def _check_one_cve(candidate_versions, entry):
 
     Returns (status, matched_ranges): status is VULNERABLE if every
     candidate falls in an affected range, NOT_VULNERABLE if none do, and
-    NEEDS_VERIFICATION if the candidates straddle a fix boundary -- i.e. the
-    verdict actually depends on which exact patch it is.
+    NEEDS_VERIFICATION if the candidates straddle a fix boundary, meaning
+    the verdict depends on which exact patch it is.
     """
     per_candidate = []
     matched = []

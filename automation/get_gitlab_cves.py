@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Keep gitlab_cves.json current by querying NVD's public CVE API for recently
-published GitLab CVEs and parsing GitLab's standard advisory phrasing --
-"affecting all versions from X before Y[, A before B, ...]" -- into the
-structured affected-range format the rest of this tool consumes.
+Keep gitlab_cves.json current by querying NVD's public CVE API for
+recently published GitLab CVEs, and parsing GitLab's standard advisory
+phrasing, "affecting all versions from X before Y[, A before B, ...]",
+into the structured affected-range format the rest of this tool consumes.
 
-CVEs whose description doesn't match that phrasing (rare, but happens) are
-still recorded, with "affected": [] and "needs_manual_review": true, rather
-than silently dropped -- check those by hand against the linked GitLab
-patch-release notes and fill in the ranges.
+CVEs whose description doesn't match that phrasing (rare, but it happens)
+are still recorded, with "affected": [] and "needs_manual_review": true,
+rather than silently dropped. Check those by hand against the linked
+GitLab patch-release notes and fill in the ranges.
 
-This never touches an existing entry that NVD doesn't (yet) know about --
-so a CVE you've hand-entered from GitLab's own release notes ahead of NVD
+This never touches an existing entry that NVD doesn't know about yet, so a
+CVE that was hand-entered from GitLab's own release notes ahead of NVD
 publishing it (see CVE-2026-10053 in gitlab_cves.json) is left alone until
 NVD actually has it.
 
@@ -20,9 +20,9 @@ USAGE
   python3 get_gitlab_cves.py ../gitlab_cves.json [--since-days 400] [--api-key KEY]
 
 An NVD API key (free, https://nvd.nist.gov/developers/request-an-api-key)
-raises the rate limit from 5 req/30s to 50 req/30s -- only matters if
---since-days spans enough pages to need more than a couple requests. Set it
-via --api-key or the NVD_API_KEY environment variable.
+raises the rate limit from 5 requests per 30 seconds to 50. This only
+matters if --since-days spans enough pages to need more than a couple of
+requests. Set it with --api-key or the NVD_API_KEY environment variable.
 """
 import argparse
 import datetime
@@ -37,11 +37,11 @@ import urllib.request
 
 NVD_API = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 VER = r"\d+(?:\.\d+){0,2}"
-# GitLab's advisory phrasing has changed over the years -- newer ones read
-# "from 18.2 before 19.0.6", older ones "starting from 15.5 prior to 16.9.7"
-# -- and either way, "from"/"starting from" only appears before the *first*
-# range in a comma-separated list ("from 18.2 before 19.0.6, 19.1 before
-# 19.1.4, and 19.2 before 19.2.2"), so it must be optional here, not
+# GitLab's advisory phrasing has changed over the years. Newer ones read
+# "from 18.2 before 19.0.6", older ones "starting from 15.5 prior to
+# 16.9.7". Either way, "from" or "starting from" only appears before the
+# first range in a comma-separated list ("from 18.2 before 19.0.6, 19.1
+# before 19.1.4, and 19.2 before 19.2.2"), so it must be optional here, not
 # required, or every range after the first gets silently dropped.
 BOUNDED_RANGE_RE = re.compile(rf"({VER})\s+(?:before|prior to|to)\s+({VER})", re.IGNORECASE)
 # Some (mostly older) advisories have no lower bound at all: "affecting all
@@ -51,7 +51,7 @@ TITLE_MAX_LEN = 140
 # NVD descriptions are one long sentence built from a fixed template:
 # "<lead-in> in GitLab CE/EE affecting all versions from X before Y[, ...]
 # that/which/where <the actual vulnerability>." A title made by truncating
-# that from the start is just the boilerplate lead-in -- the useful part is
+# that from the start is just the boilerplate lead-in. The useful part is
 # whichever side of the version-range clause isn't boilerplate.
 _TITLE_LEADING_FILLER_RE = re.compile(
     r"^[\s,;:]*(?:and|that|which|where|in which|with|under certain conditions|"
@@ -65,9 +65,9 @@ _TITLE_LEAD_IN_RE = re.compile(
     re.IGNORECASE,
 )
 # NVD's keyword search for "GitLab" pulls in unrelated CVEs that merely
-# mention it in passing (a third-party tool's GitLab integration, a random
-# reference URL, ...). Require GitLab's own standard advisory phrasing --
-# "GitLab CE", "GitLab EE", or "GitLab CE/EE" -- not just the bare word.
+# mention it in passing, such as a third-party tool's GitLab integration or
+# a random reference URL. Require GitLab's own standard advisory phrasing,
+# "GitLab CE", "GitLab EE", or "GitLab CE/EE", not just the bare word.
 GITLAB_ADVISORY_RE = re.compile(r"gitlab\s+(?:ce/ee|ce|ee)\b", re.IGNORECASE)
 
 
@@ -127,15 +127,16 @@ def parse_ranges(description):
 def extract_title(description, max_len=TITLE_MAX_LEN):
     """
     Pull the actual vulnerability description out of NVD's boilerplate
-    sentence, instead of just truncating from the start (which only ever
-    yields "GitLab has remediated an issue in GitLab CE/EE affecting all
-    versions from ..." -- the version-range clause, not the vulnerability).
+    sentence, instead of just truncating from the start. Truncating from
+    the start only ever yields "GitLab has remediated an issue in GitLab
+    CE/EE affecting all versions from ...", the version-range clause, not
+    the vulnerability.
 
     Strategy: find where the version-range clause ends, take everything
-    after it (usually "... that could allow X due to Y"), strip the
-    connective words. If that's too short (the range clause was at the very
-    end of the sentence instead), fall back to everything before the range
-    clause, stripping the generic lead-in phrase.
+    after it (usually "... that could allow X due to Y"), and strip the
+    connective words. If that's too short, meaning the range clause was at
+    the very end of the sentence instead, fall back to everything before
+    the range clause, stripping the generic lead-in phrase.
     """
     range_matches = list(BOUNDED_RANGE_RE.finditer(description)) + list(UNBOUNDED_RANGE_RE.finditer(description))
 

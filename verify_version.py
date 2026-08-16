@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Confirm or refute one specific claimed GitLab version against a live target.
-No dictionary lookup, no guessing: pulls the *exact* webpack manifest hash
-for the claimed version straight from Docker Hub's registry (streamed --
-no `docker pull` / Docker daemon needed) and diffs it byte-for-byte against
-what the live host actually serves.
+Confirm or refute one specific claimed GitLab version against a live
+target. No dictionary lookup, no guessing: this pulls the exact webpack
+manifest hash for the claimed version straight from Docker Hub's registry
+(streamed, no `docker pull` or Docker daemon needed) and diffs it
+byte-for-byte against what the live host actually serves.
 
 Use this when:
-  - a vendor/scanner claims a specific version and you want a hard yes/no
-  - scan.py returned "hash not in db" (a release too new for the local
-    dictionary) or an ambiguous range and you want to test one candidate
+  - a vendor or scanner claims a specific version and you want a hard yes or no
+  - scan.py returned "hash not in database" (a release too new for the
+    local dictionary) or an ambiguous range, and you want to test one candidate
 
 USAGE
   python3 verify_version.py --target HOST:PORT --version 18.11.7 --edition ee
@@ -18,23 +18,24 @@ USAGE
 
 EXIT CODE
   0  confirmed match
-  1  mismatch (target is running something else)
-  2  error (target unreachable, or the claimed version's docker tag doesn't exist)
+  1  mismatch, the target is running something else
+  2  error, e.g. the target is unreachable or the claimed version's docker tag doesn't exist
 
 Add --cves to also audit the pinned version against gitlab_cves.json once
-confirmed -- since this is an exact single version (not a range), the
-verdict is never "needs verification" the way scan.py's can be.
+confirmed. Since this checks one exact version rather than a range, the
+result is never NEEDS VERIFICATION the way scan.py's can be.
 
 EXAMPLE
   $ python3 verify_version.py --target gitlab.example.com:443 --version 18.11.7 --edition ee --cves
-  CONFIRMED: gitlab.example.com:443 is running GitLab ee 18.11.7
-    live hash      : d6a77cf456c325839dc9  (from https://gitlab.example.com:443/assets/webpack/manifest.json)
-    reference hash : d6a77cf456c325839dc9  (from gitlab/gitlab-ee:18.11.7-ee.0 (Docker Hub registry, streamed))
+  Asset          : gitlab.example.com:443
+  Status         : CONFIRMED
+  Live hash      : d6a77cf456c325839dc9 (from https://gitlab.example.com:443/assets/webpack/manifest.json)
+  Reference hash : d6a77cf456c325839dc9 (from gitlab/gitlab-ee:18.11.7-ee.0, Docker Hub registry, streamed)
 
-  CVE audit:
-    CVE            CVSS  SEVERITY  STATUS       FIXED IN
-    ----------------------------------------------------
-    CVE-2026-15217  8.7  high      VULNERABLE   19.0.6; 19.1.4; 19.2.2
+  CVE audit (427 checked, 1 flagged):
+    CVE             CVSS  SEVERITY  STATUS      FIXED IN
+    --------------  ----  --------  ----------  ----------------------
+    CVE-2026-15217  8.7   high      VULNERABLE  19.0.6; 19.1.4; 19.2.2
 """
 import argparse
 import json
@@ -43,6 +44,7 @@ import sys
 from lib import cve_db, format as fmt, registry, target
 
 REPO_BY_EDITION = {"ce": "gitlab/gitlab-ce", "ee": "gitlab/gitlab-ee"}
+LABEL_WIDTH = 14
 
 
 def log(msg, quiet):
@@ -58,7 +60,7 @@ def main():
     ap.add_argument("--tag-suffix", default=".0", help="docker tag suffix (default: .0, i.e. VERSION-ce.0)")
     ap.add_argument("--subdir", default="")
     ap.add_argument("--timeout", type=float, default=15)
-    ap.add_argument("--no-insecure", action="store_true", help="verify TLS certs (default: don't)")
+    ap.add_argument("--no-insecure", action="store_true", help="verify TLS certs (off by default)")
     ap.add_argument("--cves", action="store_true", help="audit the pinned version against gitlab_cves.json once confirmed")
     ap.add_argument("--cve", default=None, help="with --cves, restrict the audit to one CVE ID")
     ap.add_argument("--cve-db", default=None, help="path to a local gitlab_cves.json (default: the one next to this script)")
@@ -84,13 +86,13 @@ def main():
         "live_hash": None,
         "live_hash_source": None,
         "reference_hash": None,
-        "reference_hash_source": f"{docker_ref} (Docker Hub registry, streamed)",
+        "reference_hash_source": f"{docker_ref}, Docker Hub registry, streamed",
         "result": None,
         "cve_audit": None,
         "errors": [],
     }
 
-    log(f"[*] fetching live fingerprint from {args.target}", args.json)
+    log(f"Fetching live fingerprint from {args.target}", args.json)
     fp = target.fetch_target_fingerprint(host, port, subdir=args.subdir, timeout=args.timeout, insecure=not args.no_insecure)
     result["errors"].extend(fp["errors"])
     result["live_hash"] = fp["webpack_hash"]
@@ -102,8 +104,8 @@ def main():
         _emit(result, args.json, args.all_cves)
         sys.exit(2)
 
-    log(f"[*] live webpack hash:   {fp['webpack_hash']}", args.json)
-    log(f"[*] pulling ground-truth hash for {docker_ref} from Docker Hub (streaming, no docker pull)...", args.json)
+    log(f"Live webpack hash: {fp['webpack_hash']}", args.json)
+    log(f"Pulling the reference hash for {docker_ref} from Docker Hub (streaming, no docker pull)...", args.json)
 
     try:
         webpack_hash, commit_hash = registry.fetch_manifest_hash(repo, tag, log=lambda m: log(m, args.json))
@@ -118,11 +120,11 @@ def main():
 
     if webpack_hash is None:
         result["result"] = "error"
-        result["error"] = f"couldn't extract manifest.json from {docker_ref} -- does that tag exist?"
+        result["error"] = f"could not extract manifest.json from {docker_ref}. Check that this tag exists."
         _emit(result, args.json, args.all_cves)
         sys.exit(2)
 
-    log(f"[*] {tag} webpack hash:  {webpack_hash}", args.json)
+    log(f"Reference webpack hash for {tag}: {webpack_hash}", args.json)
     log("", args.json)
 
     if fp["webpack_hash"] == webpack_hash:
@@ -143,21 +145,27 @@ def _emit(result, as_json, show_all_cves=False):
         print(json.dumps(result, indent=2))
         return
 
+    kv = lambda label, value: print(fmt.kv(label, value, width=LABEL_WIDTH, indent=""))
     t, v, e = result["target"], result["claimed_version"], result["claimed_edition"]
+
+    kv("Asset", t)
     if result["result"] == "confirmed":
-        print(f"CONFIRMED: {t} is running GitLab {e} {v}")
-        print(f"  live hash      : {result['live_hash']}  (from {result['live_hash_source']})")
-        print(f"  reference hash : {result['reference_hash']}  (from {result['reference_hash_source']})")
+        kv("Status", fmt.color_label("CONFIRMED", "CONFIRMED"))
+        kv("Claimed", f"GitLab {e} {v}")
+        kv("Live hash", f"{result['live_hash']} (from {result['live_hash_source']})")
+        kv("Reference hash", f"{result['reference_hash']} (from {result['reference_hash_source']})")
         if result["cve_audit"] is not None:
             print()
             fmt.print_cve_table(result["cve_audit"], show_all=show_all_cves)
     elif result["result"] == "mismatch":
-        print(f"MISMATCH: {t} is NOT running GitLab {e} {v}")
-        print(f"  live hash      : {result['live_hash']}  (from {result['live_hash_source']})")
-        print(f"  reference hash : {result['reference_hash']}  (from {result['reference_hash_source']})")
-        print(f"  Next step: python3 scan.py {t}  -- to find what it's actually running")
+        kv("Status", fmt.color_label("MISMATCH", "MISMATCH"))
+        kv("Claimed", f"GitLab {e} {v} (not a match)")
+        kv("Live hash", f"{result['live_hash']} (from {result['live_hash_source']})")
+        kv("Reference hash", f"{result['reference_hash']} (from {result['reference_hash_source']})")
+        kv("Next step", f"python3 scan.py {t} to determine the running version")
     else:
-        print(f"ERROR: {result.get('error')}")
+        kv("Status", fmt.color_label("ERROR", "ERROR"))
+        kv("Reason", result.get("error"))
     for err in result["errors"]:
         print(f"  ! {err}")
 

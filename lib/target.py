@@ -1,9 +1,10 @@
 """
 Fetch GitLab version fingerprints straight off a live target: the webpack
-static-assets manifest hash (works on every version we've tested, including
-current 18.x/19.x), and the legacy `gon.revision` commit hash from the
-sign-in page (only present on older GitLab releases -- current versions no
-longer emit it, but we keep the fallback for old instances).
+static-assets manifest hash, which works on every version tested so far
+including current 18.x/19.x releases, and the legacy `gon.revision` commit
+hash from the sign-in page. That commit hash is only present on older
+GitLab releases (current versions no longer emit it), but the fallback is
+kept here for old instances that still do.
 """
 import json
 import re
