@@ -56,12 +56,28 @@ import sys
 from lib import cve_db, format as fmt, gitlab_com, hashdb, target
 
 LABEL_WIDTH = 13
+# Fixed widths for the Evidence block's label columns, rather than computed
+# per call, so every target in a multi-target scan lines up identically
+# regardless of which optional evidence lines it happens to have. Sized to
+# the longest label that can appear at each level, plus one column so the
+# longest label still gets a visible gap before its colon.
+EVIDENCE_LABEL_WIDTH = len("webpack manifest hash") + 1
+EVIDENCE_SUB_LABEL_WIDTH = len("key (commit_hash)") + 1
 EDITION_FLAG = {"enterprise": "ee", "community": "ce"}
 
 
 def edition_flag_for(edition):
     """'ee'/'ce' for --edition when known, a placeholder only when it genuinely isn't."""
     return EDITION_FLAG.get(edition, "[ce|ee]")
+
+
+def oxford_list(items):
+    """['a', 'b', 'c'] -> 'a, b, or c'. ['a', 'b'] -> 'a or b'. ['a'] -> 'a'."""
+    if len(items) <= 1:
+        return items[0] if items else ""
+    if len(items) == 2:
+        return f"{items[0]} or {items[1]}"
+    return f"{', '.join(items[:-1])}, or {items[-1]}"
 
 
 def scan_one(hostport, subdir, timeout, insecure, db, db_source, no_gitlab_com):
@@ -147,9 +163,7 @@ def print_text(r, show_all_cves=False):
         kv("Status", fmt.color_label("IDENTIFIED", "IDENTIFIED"))
         kv("Edition", f"GitLab {r['edition']}")
         if r["ambiguous"]:
-            others = ", ".join(v for v in r["versions"] if v != floor)
-            kv("Version", f"{floor} (floor, exact patch not distinguishable remotely)")
-            kv("Also possible", fmt.dim(f"{others} (same build fingerprint as {floor}, see Verify manually below)"))
+            kv("Version", f"{oxford_list(r['versions'])} (identical build, see Verify manually to confirm exactly)")
         else:
             kv("Version", floor)
         kv("Method", r["evidence"]["method"])
@@ -176,23 +190,23 @@ def print_text(r, show_all_cves=False):
                 [(f"key ({r['evidence']['hashdb_match_type']})", r["evidence"]["hashdb_matched_key"])],
             ))
         print(f"  {fmt.header('Evidence:')}")
-        fmt.print_kv_block(evidence_rows)
+        fmt.print_kv_block(evidence_rows, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
 
-        verify_rows = [[
+        verify_items = [(
             "Webpack hash",
             f"curl -sk {r['evidence']['manifest_url']} | python3 -c \"import json,sys; print(json.load(sys.stdin)['hash'])\"",
-        ]]
+        )]
         for q in r["evidence"]["gitlab_com_queries"] or []:
             if q["matched_tags"]:
-                verify_rows.append(["gitlab.com lookup", f"curl -s '{q['url']}'"])
+                verify_items.append(("gitlab.com lookup", f"curl -s '{q['url']}'"))
         if r["ambiguous"]:
-            verify_rows.append([
+            verify_items.append((
                 "Pin exact version",
                 f"python3 verify_version.py --target {r['target']} --version {floor} --edition {edition_flag_for(r['edition'])}",
-            ])
+            ))
         print()
         print(f"  {fmt.header('Verify manually (copy and run):')}")
-        fmt.print_table(["CHECK", "COMMAND"], verify_rows, indent="    ")
+        fmt.print_command_list(verify_items, indent="    ")
 
         if r["cve_audit"] is not None:
             print()
@@ -210,7 +224,7 @@ def print_text(r, show_all_cves=False):
                 "build commit hash", f"{r['evidence']['commit_hash']} (not resolvable on gitlab.com either)", None,
             ))
         print(f"  {fmt.header('Evidence:')}")
-        fmt.print_kv_block(evidence_rows)
+        fmt.print_kv_block(evidence_rows, top_width=EVIDENCE_LABEL_WIDTH, sub_width=EVIDENCE_SUB_LABEL_WIDTH)
         print()
         kv("Next step", r["verify_hint"])
 
@@ -287,6 +301,7 @@ def main():
     if args.json:
         print(json.dumps(results, indent=2))
     else:
+        print()  # separate the output from the shell command that produced it
         for r in results:
             print_text(r, show_all_cves=args.all_cves)
         print_summary(results, args.cves)

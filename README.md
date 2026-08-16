@@ -3,10 +3,11 @@
 A command-line tool that finds out what version of GitLab a server is
 running, and checks that version against known CVEs. It works without
 logging in and without nmap, and it shows the raw evidence behind every
-result so you can double-check it yourself.
+result so you can double-check it manually.
 
 ```
 $ python3 scan.py --cves gitlab.example.com:443
+
   Asset        : gitlab.example.com:443
   Status       : IDENTIFIED
   Edition      : GitLab enterprise
@@ -14,23 +15,24 @@ $ python3 scan.py --cves gitlab.example.com:443
   Method       : gitlab.com commit-hash lookup
 
   Evidence:
-    webpack manifest hash: 3f9a1c7e2b8d4f6a1c9e
-      fetched from : https://gitlab.example.com:443/assets/webpack/manifest.json
-    build commit hash    : 7b2e9f0a1d3
-      fetched from : https://gitlab.example.com:443/users/sign_in (gon.revision)
-    resolved via         : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
-      matching tags: v17.4.2-ee
+    webpack manifest hash : 3f9a1c7e2b8d4f6a1c9e
+      fetched from      : https://gitlab.example.com:443/assets/webpack/manifest.json
+    build commit hash     : 7b2e9f0a1d3
+      fetched from      : https://gitlab.example.com:443/users/sign_in (gon.revision)
+    resolved via          : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
+      matching tags     : v17.4.2-ee
 
   Verify manually (copy and run):
-    CHECK              COMMAND
-    -----------------  ------------------------------------------------------------------------
-    Webpack hash       curl -sk https://.../manifest.json | python3 -c "...print(...['hash'])"
-    gitlab.com lookup  curl -s 'https://gitlab.com/api/v4/projects/278964/repository/commits/...'
+    Webpack hash
+      curl -sk https://gitlab.example.com:443/assets/webpack/manifest.json | python3 -c "import json,sys; print(json.load(sys.stdin)['hash'])"
+
+    gitlab.com lookup
+      curl -s 'https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag'
 
   CVE audit (427 checked, 1 flagged):
-    CVE             CVSS  SEVERITY  STATUS      FIXED IN
-    --------------  ----  --------  ----------  ----------------------
-    CVE-2026-15217   8.7  high      VULNERABLE  19.0.6; 19.1.4; 19.2.2
+    CVE              CVSS   SEVERITY   STATUS       FIXED IN
+    --------------   ----   --------   ----------   ----------------------
+    CVE-2026-15217    8.7   high       VULNERABLE   19.0.6; 19.1.4; 19.2.2
 ```
 
 Section headers (`Evidence:`, `Verify manually:`, `CVE audit:`) are shown
@@ -184,6 +186,7 @@ what the server returns. If they match, it's confirmed, not guessed.
 
 ```
 $ python3 verify_version.py --target gitlab.example.com:443 --version 17.4.2 --edition ee
+
   Asset          : gitlab.example.com:443
   Status         : CONFIRMED
   Claimed        : GitLab ee 17.4.2

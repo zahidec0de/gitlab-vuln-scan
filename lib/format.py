@@ -24,6 +24,10 @@ _HEADER = "\033[1;36m"  # bold cyan, used for section headers like "Evidence:"
 _DIM = "\033[2m"        # dim, used for de-emphasized helper text
 _RESET = "\033[0m"
 
+# Gap between table columns. 3 spaces reads more clearly than 2 once a
+# table has 5+ columns of mixed width.
+COL_GAP = "   "
+
 
 def color_enabled():
     return sys.stdout.isatty() and not os.environ.get("NO_COLOR")
@@ -48,7 +52,7 @@ color_status = color_label
 
 
 def header(text):
-    """A section heading, e.g. 'Evidence:' or 'CVE audit (...)'. Bold when colored."""
+    """A section heading, e.g. 'Evidence:' or 'CVE audit (...)'. Bold cyan when colored."""
     return f"{_HEADER}{text}{_RESET}" if color_enabled() else text
 
 
@@ -66,7 +70,7 @@ def kv(label, value, width=14, indent="  "):
     return f"{indent}{label:<{width}}: {value}"
 
 
-def print_kv_block(rows, indent="    ", sub_indent="      "):
+def print_kv_block(rows, indent="    ", sub_indent="      ", top_width=None, sub_width=None):
     """
     A nested block of "Label : value" lines where some entries have one or
     more indented sub-entries under them, e.g.:
@@ -76,19 +80,53 @@ def print_kv_block(rows, indent="    ", sub_indent="      "):
           matching tags       : v18.11.7-ee, v18.11.8-ee
 
     `rows` is a list of (label, value, sub_rows) tuples, where sub_rows is
-    a list of (label, value) tuples or None. Column widths are computed
-    per call from whatever labels are actually present, so top-level and
-    nested labels are each internally consistent no matter which optional
-    fields end up included.
+    a list of (label, value) tuples or None.
+
+    top_width/sub_width fix the label column widths explicitly. Pass them
+    whenever the same kind of block is printed more than once (e.g. once
+    per target in a multi-target scan) so every instance lines up
+    identically, rather than each call computing its own width from
+    whichever optional fields happen to be present that time. When not
+    given, the widths are computed from this call's rows only, with one
+    extra column of padding so the longest label still gets a visible gap
+    before its colon.
     """
-    top_width = max((len(label) for label, _, _ in rows), default=0)
-    sub_labels = [label for _, _, subs in rows if subs for label, _ in subs]
-    sub_width = max((len(label) for label in sub_labels), default=0)
+    if top_width is None:
+        top_width = max((len(label) for label, _, _ in rows), default=0) + 1
+    if sub_width is None:
+        sub_labels = [label for _, _, subs in rows if subs for label, _ in subs]
+        sub_width = max((len(label) for label in sub_labels), default=0) + 1
 
     for label, value, subs in rows:
         print(kv(label, value, width=top_width, indent=indent))
         for sub_label, sub_value in (subs or []):
             print(kv(sub_label, sub_value, width=sub_width, indent=sub_indent))
+
+
+def print_command_list(items, indent="  "):
+    """
+    A label followed by the command that checks it, one per item, e.g.:
+        Webpack hash
+          curl -sk https://.../manifest.json | python3 -c "..."
+
+        gitlab.com lookup
+          curl -s 'https://gitlab.com/api/v4/...'
+
+    Deliberately not a table: these commands are full shell one-liners of
+    very different lengths (a short version-pin command next to a long
+    curl-piped-to-python3 command), and forcing that into fixed-width
+    table columns makes the separator row absurdly wide and the whole
+    block harder to read, not easier, especially as target hostnames or
+    URLs get longer. A label-then-command pair keeps every command
+    intact and easy to copy regardless of its length.
+
+    `items` is a list of (label, command) tuples.
+    """
+    for i, (label, command) in enumerate(items):
+        if i:
+            print()
+        print(f"{indent}{label}")
+        print(f"{indent}  {command}")
 
 
 def render_table(headers, rows, align=None):
@@ -121,10 +159,10 @@ def render_table(headers, rows, align=None):
 
 def print_table(headers, rows, indent="  ", align=None):
     header_row, sep, data_rows = render_table(headers, rows, align=align)
-    print((indent + "  ".join(header_row)).rstrip())
-    print((indent + "  ".join(sep)).rstrip())
+    print((indent + COL_GAP.join(header_row)).rstrip())
+    print((indent + COL_GAP.join(sep)).rstrip())
     for row in data_rows:
-        print((indent + "  ".join(row)).rstrip())
+        print((indent + COL_GAP.join(row)).rstrip())
 
 
 _CVE_HEADERS = ["CVE", "CVSS", "SEVERITY", "STATUS", "FIXED IN"]
@@ -172,14 +210,14 @@ def print_cve_table(findings, indent="  ", show_all=False):
 
     rows = [_cve_row(f) for f in shown]
     header_row, sep, data_rows = render_table(_CVE_HEADERS, rows, align=_CVE_ALIGN)
-    print((f"{indent}  " + "  ".join(header_row)).rstrip())
-    print((f"{indent}  " + "  ".join(sep)).rstrip())
+    print((f"{indent}  " + COL_GAP.join(header_row)).rstrip())
+    print((f"{indent}  " + COL_GAP.join(sep)).rstrip())
     for f, row in zip(shown, data_rows):
         row = list(row)
         row[-1] = row[-1].rstrip()
         row[2] = color_severity(row[2], f["severity"])
         row[3] = color_label(row[3], cve_db.STATUS_LABEL[f["status"]])
-        print(f"{indent}  " + "  ".join(row))
+        print(f"{indent}  " + COL_GAP.join(row))
     if skipped:
         print(f"{indent}  {dim(f'{skipped} more checked and found NOT VULNERABLE. Pass --all-cves to list them.')}")
 
@@ -210,13 +248,13 @@ def print_findings_table(results, indent="  "):
     align = ["l", "l"] + _CVE_ALIGN
     print(f"{indent}{header('Findings:')}")
     header_row, sep, data_rows = render_table(headers, rows, align=align)
-    print((f"{indent}  " + "  ".join(header_row)).rstrip())
-    print((f"{indent}  " + "  ".join(sep)).rstrip())
+    print((f"{indent}  " + COL_GAP.join(header_row)).rstrip())
+    print((f"{indent}  " + COL_GAP.join(sep)).rstrip())
     for row_data, row in zip(rows, data_rows):
         severity, status_label = row_data[4], row_data[5]
         row = list(row)
         row[-1] = row[-1].rstrip()
         row[4] = color_severity(row[4], severity)
         row[5] = color_label(row[5], status_label)
-        print(f"{indent}  " + "  ".join(row))
+        print(f"{indent}  " + COL_GAP.join(row))
     print()

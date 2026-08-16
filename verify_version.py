@@ -125,7 +125,6 @@ def main():
         sys.exit(2)
 
     log(f"Reference webpack hash for {tag}: {webpack_hash}", args.json)
-    log("", args.json)
 
     if fp["webpack_hash"] == webpack_hash:
         result["result"] = "confirmed"
@@ -148,6 +147,7 @@ def _emit(result, as_json, show_all_cves=False):
     kv = lambda label, value: print(fmt.kv(label, value, width=LABEL_WIDTH, indent=""))
     t, v, e = result["target"], result["claimed_version"], result["claimed_edition"]
 
+    print()  # separate the output from the shell command that produced it
     kv("Asset", t)
     if result["result"] == "confirmed":
         kv("Status", fmt.color_label("CONFIRMED", "CONFIRMED"))
