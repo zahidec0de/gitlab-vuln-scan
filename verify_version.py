@@ -26,9 +26,9 @@ confirmed -- since this is an exact single version (not a range), the
 verdict is never "needs verification" the way scan.py's can be.
 
 EXAMPLE
-  $ python3 verify_version.py --target gitlab-g.drahim.sa:443 --version 18.11.7 --edition ee --cves
-  CONFIRMED: gitlab-g.drahim.sa:443 is running GitLab ee 18.11.7
-    live hash      : d6a77cf456c325839dc9  (from https://gitlab-g.drahim.sa:443/assets/webpack/manifest.json)
+  $ python3 verify_version.py --target gitlab.example.com:443 --version 18.11.7 --edition ee --cves
+  CONFIRMED: gitlab.example.com:443 is running GitLab ee 18.11.7
+    live hash      : d6a77cf456c325839dc9  (from https://gitlab.example.com:443/assets/webpack/manifest.json)
     reference hash : d6a77cf456c325839dc9  (from gitlab/gitlab-ee:18.11.7-ee.0 (Docker Hub registry, streamed))
 
   CVE audit:

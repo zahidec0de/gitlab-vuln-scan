@@ -64,7 +64,7 @@ def fetch_nvd_page(keyword, start_index, pub_start, pub_end, api_key, retries=3)
         "pubEndDate": pub_end,
     }
     url = f"{NVD_API}?{urllib.parse.urlencode(params)}"
-    headers = {"User-Agent": "gitlab-sentinel-cve-updater/1.0"}
+    headers = {"User-Agent": "gitlab-vuln-scan-cve-updater/1.0"}
     if api_key:
         headers["apiKey"] = api_key
 

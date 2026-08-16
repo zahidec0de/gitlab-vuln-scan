@@ -45,9 +45,9 @@ EXIT CODE
   1  a target could not be identified, or (with --cves) at least one risky finding
 
 EXAMPLES
-  python3 scan.py gitlab-g.drahim.sa:443
-  python3 scan.py --cves 34.166.164.101:443 176.98.32.189:443
-  python3 scan.py --json --cves gitlab-g.drahim.sa:443 | jq '.[0].cve_audit'
+  python3 scan.py gitlab.example.com:443
+  python3 scan.py --cves 203.0.113.10:443 203.0.113.11:443
+  python3 scan.py --json --cves gitlab.example.com:443 | jq '.[0].cve_audit'
 """
 import argparse
 import json
@@ -225,7 +225,7 @@ def print_summary(results, show_cves):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("targets", nargs="+", help="host:port, e.g. gitlab-g.drahim.sa:443")
+    ap.add_argument("targets", nargs="+", help="host:port, e.g. gitlab.example.com:443")
     ap.add_argument("--subdir", default="", help="GitLab installed under a sub-path, e.g. /gitlab")
     ap.add_argument("--timeout", type=float, default=15, help="per-request timeout in seconds (default: 15)")
     ap.add_argument("--no-insecure", action="store_true", help="verify TLS certs (default: don't -- most internal instances use self-signed certs)")

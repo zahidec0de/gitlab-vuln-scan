@@ -16,7 +16,7 @@ import urllib.request
 LOCAL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "gitlab_cves.json")
 # Placeholder until this repo is actually pushed to a fork -- update once you
 # know the real remote path, or just always pass --db/skip --remote-db.
-REMOTE_URL = "https://raw.githubusercontent.com/zahidec0de/gitlab-sentinel/main/gitlab_cves.json"
+REMOTE_URL = "https://raw.githubusercontent.com/zahidec0de/gitlab-vuln-scan/main/gitlab_cves.json"
 
 VULNERABLE = "vulnerable"
 NOT_VULNERABLE = "not_vulnerable"
