@@ -20,8 +20,8 @@ _LABEL_COLOR = {
     "GITLAB DETECTED, HASH NOT IN LOCAL DATABASE": "\033[33m",
     "NOT GITLAB OR UNREACHABLE": "\033[2m",
 }
-_HEADER = "\033[1m"   # bold, used for section headers like "Evidence:"
-_DIM = "\033[2m"      # dim, used for de-emphasized helper text
+_HEADER = "\033[1;36m"  # bold cyan, used for section headers like "Evidence:"
+_DIM = "\033[2m"        # dim, used for de-emphasized helper text
 _RESET = "\033[0m"
 
 
@@ -64,6 +64,31 @@ def kv(label, value, width=14, indent="  "):
         Status  : IDENTIFIED
     """
     return f"{indent}{label:<{width}}: {value}"
+
+
+def print_kv_block(rows, indent="    ", sub_indent="      "):
+    """
+    A nested block of "Label : value" lines where some entries have one or
+    more indented sub-entries under them, e.g.:
+        webpack manifest hash : d6a77cf456c325839dc9
+          fetched from        : https://.../manifest.json
+        resolved via          : https://gitlab.com/api/v4/...
+          matching tags       : v18.11.7-ee, v18.11.8-ee
+
+    `rows` is a list of (label, value, sub_rows) tuples, where sub_rows is
+    a list of (label, value) tuples or None. Column widths are computed
+    per call from whatever labels are actually present, so top-level and
+    nested labels are each internally consistent no matter which optional
+    fields end up included.
+    """
+    top_width = max((len(label) for label, _, _ in rows), default=0)
+    sub_labels = [label for _, _, subs in rows if subs for label, _ in subs]
+    sub_width = max((len(label) for label in sub_labels), default=0)
+
+    for label, value, subs in rows:
+        print(kv(label, value, width=top_width, indent=indent))
+        for sub_label, sub_value in (subs or []):
+            print(kv(sub_label, sub_value, width=sub_width, indent=sub_indent))
 
 
 def render_table(headers, rows, align=None):

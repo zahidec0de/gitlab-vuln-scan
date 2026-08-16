@@ -56,6 +56,12 @@ import sys
 from lib import cve_db, format as fmt, gitlab_com, hashdb, target
 
 LABEL_WIDTH = 13
+EDITION_FLAG = {"enterprise": "ee", "community": "ce"}
+
+
+def edition_flag_for(edition):
+    """'ee'/'ce' for --edition when known, a placeholder only when it genuinely isn't."""
+    return EDITION_FLAG.get(edition, "[ce|ee]")
 
 
 def scan_one(hostport, subdir, timeout, insecure, db, db_source, no_gitlab_com):
@@ -116,7 +122,7 @@ def scan_one(hostport, subdir, timeout, insecure, db, db_source, no_gitlab_com):
         result["status"] = "hash_not_in_db"
         if fp["webpack_hash"]:
             result["verify_hint"] = (
-                f"python3 verify_version.py --target {host}:{port} --version X.Y.Z --edition ce|ee"
+                f"python3 verify_version.py --target {host}:{port} --version [X.Y.Z] --edition [ce|ee]"
             )
         return result
 
@@ -148,30 +154,45 @@ def print_text(r, show_all_cves=False):
             kv("Version", floor)
         kv("Method", r["evidence"]["method"])
         print()
-        print(f"  {fmt.header('Evidence:')}")
-        print(f"    webpack manifest hash : {r['evidence']['webpack_hash']}")
-        print(f"      fetched from        : {r['evidence']['manifest_url']}")
+
+        evidence_rows = [
+            ("webpack manifest hash", r["evidence"]["webpack_hash"],
+             [("fetched from", r["evidence"]["manifest_url"])]),
+        ]
         if r["evidence"]["commit_hash"]:
-            print(f"    build commit hash     : {r['evidence']['commit_hash']}")
-            print(f"      fetched from        : {r['evidence']['signin_url']} (gon.revision)")
-        if r["evidence"]["gitlab_com_queries"]:
-            for q in r["evidence"]["gitlab_com_queries"]:
-                if q["matched_tags"]:
-                    print(f"    resolved via          : {q['url']}")
-                    print(f"      matching tags        : {', '.join(q['matched_tags'])}")
+            evidence_rows.append((
+                "build commit hash", r["evidence"]["commit_hash"],
+                [("fetched from", f"{r['evidence']['signin_url']} (gon.revision)")],
+            ))
+        for q in r["evidence"]["gitlab_com_queries"] or []:
+            if q["matched_tags"]:
+                evidence_rows.append((
+                    "resolved via", q["url"],
+                    [("matching tags", ", ".join(q["matched_tags"]))],
+                ))
         if r["evidence"]["hashdb_matched_key"]:
-            print(f"    matched in            : {r['evidence']['hashdb_source']}")
-            print(f"      key ({r['evidence']['hashdb_match_type']})   : {r['evidence']['hashdb_matched_key']}")
+            evidence_rows.append((
+                "matched in", r["evidence"]["hashdb_source"],
+                [(f"key ({r['evidence']['hashdb_match_type']})", r["evidence"]["hashdb_matched_key"])],
+            ))
+        print(f"  {fmt.header('Evidence:')}")
+        fmt.print_kv_block(evidence_rows)
+
+        verify_rows = [[
+            "Webpack hash",
+            f"curl -sk {r['evidence']['manifest_url']} | python3 -c \"import json,sys; print(json.load(sys.stdin)['hash'])\"",
+        ]]
+        for q in r["evidence"]["gitlab_com_queries"] or []:
+            if q["matched_tags"]:
+                verify_rows.append(["gitlab.com lookup", f"curl -s '{q['url']}'"])
+        if r["ambiguous"]:
+            verify_rows.append([
+                "Pin exact version",
+                f"python3 verify_version.py --target {r['target']} --version {floor} --edition {edition_flag_for(r['edition'])}",
+            ])
         print()
         print(f"  {fmt.header('Verify manually (copy and run):')}")
-        print(f"    $ curl -sk {r['evidence']['manifest_url']} \\")
-        print(f"        | python3 -c \"import json,sys; print(json.load(sys.stdin)['hash'])\"")
-        if r["evidence"]["gitlab_com_queries"]:
-            for q in r["evidence"]["gitlab_com_queries"]:
-                if q["matched_tags"]:
-                    print(f"    $ curl -s '{q['url']}'")
-        if r["ambiguous"]:
-            print(f"    $ python3 verify_version.py --target {r['target']} --version {floor} --edition <ce|ee>")
+        fmt.print_table(["CHECK", "COMMAND"], verify_rows, indent="    ")
 
         if r["cve_audit"] is not None:
             print()
@@ -180,11 +201,16 @@ def print_text(r, show_all_cves=False):
     elif r["status"] == "hash_not_in_db":
         kv("Status", fmt.color_label("GITLAB DETECTED, HASH NOT IN LOCAL DATABASE", "GITLAB DETECTED, HASH NOT IN LOCAL DATABASE"))
         print()
-        print(f"  {fmt.header('Evidence:')}")
-        print(f"    webpack manifest hash : {r['evidence']['webpack_hash']}")
-        print(f"      fetched from        : {r['evidence']['manifest_url']}")
+        evidence_rows = [
+            ("webpack manifest hash", r["evidence"]["webpack_hash"],
+             [("fetched from", r["evidence"]["manifest_url"])]),
+        ]
         if r["evidence"]["commit_hash"]:
-            print(f"    build commit hash     : {r['evidence']['commit_hash']} (not resolvable on gitlab.com either)")
+            evidence_rows.append((
+                "build commit hash", f"{r['evidence']['commit_hash']} (not resolvable on gitlab.com either)", None,
+            ))
+        print(f"  {fmt.header('Evidence:')}")
+        fmt.print_kv_block(evidence_rows)
         print()
         kv("Next step", r["verify_hint"])
 

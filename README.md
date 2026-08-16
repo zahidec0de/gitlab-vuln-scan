@@ -11,25 +11,33 @@ $ python3 scan.py --cves gitlab.example.com:443
   Status       : IDENTIFIED
   Edition      : GitLab enterprise
   Version      : 17.4.2
+  Method       : gitlab.com commit-hash lookup
 
   Evidence:
-    webpack manifest hash : 3f9a1c7e2b8d4f6a1c9e
-      fetched from        : https://gitlab.example.com:443/assets/webpack/manifest.json
-    build commit hash     : 7b2e9f0a1d3
-      fetched from        : https://gitlab.example.com:443/users/sign_in (gon.revision)
-    resolved via          : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
-      matching tags        : v17.4.2-ee
+    webpack manifest hash: 3f9a1c7e2b8d4f6a1c9e
+      fetched from : https://gitlab.example.com:443/assets/webpack/manifest.json
+    build commit hash    : 7b2e9f0a1d3
+      fetched from : https://gitlab.example.com:443/users/sign_in (gon.revision)
+    resolved via         : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
+      matching tags: v17.4.2-ee
 
   Verify manually (copy and run):
-    $ curl -sk https://gitlab.example.com:443/assets/webpack/manifest.json \
-        | python3 -c "import json,sys; print(json.load(sys.stdin)['hash'])"
+    CHECK              COMMAND
+    -----------------  ------------------------------------------------------------------------
+    Webpack hash       curl -sk https://.../manifest.json | python3 -c "...print(...['hash'])"
+    gitlab.com lookup  curl -s 'https://gitlab.com/api/v4/projects/278964/repository/commits/...'
 
-  CVE audit (427 checked, 3 flagged):
+  CVE audit (427 checked, 1 flagged):
     CVE             CVSS  SEVERITY  STATUS      FIXED IN
     --------------  ----  --------  ----------  ----------------------
-    CVE-2026-15217  8.7   high      VULNERABLE  19.0.6; 19.1.4; 19.2.2
-    ...
+    CVE-2026-15217   8.7  high      VULNERABLE  19.0.6; 19.1.4; 19.2.2
 ```
+
+Section headers (`Evidence:`, `Verify manually:`, `CVE audit:`) are shown
+in color on a real terminal, along with the status line and each CVE's
+severity, so the important parts stand out at a glance. Colors are skipped
+automatically when the output isn't a terminal (e.g. piped to a file), and
+always with the `NO_COLOR` environment variable set.
 
 ## Why this isn't as simple as it sounds
 
