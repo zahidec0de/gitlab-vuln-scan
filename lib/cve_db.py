@@ -79,7 +79,7 @@ def _check_one_cve(candidate_versions, entry):
         hit = next((rng for rng in entry["affected"] if _in_range(v, rng)), None)
         per_candidate.append(hit is not None)
         if hit is not None:
-            matched.append(f"{hit['from']} ≤ v < {hit['before']}")
+            matched.append(f">={hit['from']},<{hit['before']}")
 
     if all(per_candidate):
         status = VULNERABLE

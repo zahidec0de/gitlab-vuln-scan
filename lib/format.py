@@ -59,10 +59,10 @@ def render_table(headers, rows):
 
 def print_table(headers, rows, indent="  "):
     header, sep, data_rows = render_table(headers, rows)
-    print(indent + "  ".join(header))
-    print(indent + "  ".join(sep))
+    print((indent + "  ".join(header)).rstrip())
+    print((indent + "  ".join(sep)).rstrip())
     for row in data_rows:
-        print(indent + "  ".join(row))
+        print((indent + "  ".join(row)).rstrip())
 
 
 def print_cve_table(findings, indent="  ", show_all=False):
@@ -102,10 +102,11 @@ def print_cve_table(findings, indent="  ", show_all=False):
             "; ".join(f["fixed_versions"]) if label != "NOT VULNERABLE" else "-",
         ])
     header, sep, data_rows = render_table(["CVE", "CVSS", "SEVERITY", "STATUS", "FIXED IN"], rows)
-    print(f"{indent}  " + "  ".join(header))
-    print(f"{indent}  " + "  ".join(sep))
+    print((f"{indent}  " + "  ".join(header)).rstrip())
+    print((f"{indent}  " + "  ".join(sep)).rstrip())
     for f, row in zip(shown, data_rows):
         row = list(row)
+        row[-1] = row[-1].rstrip()
         row[2] = color_severity(row[2], f["severity"])
         row[3] = color_status(row[3], cve_db.STATUS_LABEL[f["status"]])
         print(f"{indent}  " + "  ".join(row))

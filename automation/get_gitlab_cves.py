@@ -47,7 +47,23 @@ BOUNDED_RANGE_RE = re.compile(rf"({VER})\s+(?:before|prior to|to)\s+({VER})", re
 # Some (mostly older) advisories have no lower bound at all: "affecting all
 # versions before 17.6.0". Treat that as open from 0.0.0.
 UNBOUNDED_RANGE_RE = re.compile(rf"all versions\s+(?:before|prior to)\s+({VER})", re.IGNORECASE)
-TITLE_MAX_LEN = 110
+TITLE_MAX_LEN = 140
+# NVD descriptions are one long sentence built from a fixed template:
+# "<lead-in> in GitLab CE/EE affecting all versions from X before Y[, ...]
+# that/which/where <the actual vulnerability>." A title made by truncating
+# that from the start is just the boilerplate lead-in -- the useful part is
+# whichever side of the version-range clause isn't boilerplate.
+_TITLE_LEADING_FILLER_RE = re.compile(
+    r"^[\s,;:]*(?:and|that|which|where|in which|with|under certain conditions|"
+    r"could have allowed|could allow|may have allowed|may lead to|"
+    r"allows?|when|is vulnerable to)?[\s,;:]*",
+    re.IGNORECASE,
+)
+_TITLE_LEAD_IN_RE = re.compile(
+    r"^(?:GitLab has remediated an issue in|An? issue (?:was|has been) discovered(?:\s+in)?|"
+    r"An? .*? vulnerability in)\s*",
+    re.IGNORECASE,
+)
 # NVD's keyword search for "GitLab" pulls in unrelated CVEs that merely
 # mention it in passing (a third-party tool's GitLab integration, a random
 # reference URL, ...). Require GitLab's own standard advisory phrasing --
@@ -108,13 +124,62 @@ def parse_ranges(description):
     return ranges
 
 
+def extract_title(description, max_len=TITLE_MAX_LEN):
+    """
+    Pull the actual vulnerability description out of NVD's boilerplate
+    sentence, instead of just truncating from the start (which only ever
+    yields "GitLab has remediated an issue in GitLab CE/EE affecting all
+    versions from ..." -- the version-range clause, not the vulnerability).
+
+    Strategy: find where the version-range clause ends, take everything
+    after it (usually "... that could allow X due to Y"), strip the
+    connective words. If that's too short (the range clause was at the very
+    end of the sentence instead), fall back to everything before the range
+    clause, stripping the generic lead-in phrase.
+    """
+    range_matches = list(BOUNDED_RANGE_RE.finditer(description)) + list(UNBOUNDED_RANGE_RE.finditer(description))
+
+    tail = ""
+    if range_matches:
+        tail = description[max(m.end() for m in range_matches):]
+        prev = None
+        while prev != tail:
+            prev = tail
+            tail = _TITLE_LEADING_FILLER_RE.sub("", tail)
+        tail = tail.strip(" .")
+
+    if len(tail) >= 20:
+        title = tail
+    else:
+        # Cut right before the version-range clause starts, not at the
+        # first occurrence of "affecting"/"starting" anywhere in the text --
+        # those words can legitimately appear earlier too, e.g. "discovered
+        # affecting service availability ... affecting all versions from ...".
+        head = description[: min(m.start() for m in range_matches)] if range_matches else description
+        # strip the trailing "affecting all versions (starting) from" clause
+        # that leads into the range itself, however much of it is present
+        head = re.sub(
+            r"(?:affecting\s+all\s+versions\s+(?:starting\s+)?(?:from\s+)?|starting\s+(?:from\s+)?|affecting\s+)\s*$",
+            "", head, flags=re.IGNORECASE,
+        ).strip(" ,")
+        head = _TITLE_LEAD_IN_RE.sub("", head).strip(" ,")
+        head = re.sub(r"^affecting\s+", "", head, flags=re.IGNORECASE)
+        title = head if len(head) >= 15 else description
+
+    if title:
+        title = title[0].upper() + title[1:]
+    if len(title) > max_len:
+        title = title[:max_len].rsplit(" ", 1)[0] + "..."
+    return title.rstrip(". ")
+
+
 def build_entry(cve):
     desc = next((d["value"] for d in cve["descriptions"] if d["lang"] == "en"), "")
     cvss, vector = cvss_from(cve)
     ranges = parse_ranges(desc)
 
     entry = {
-        "title": desc if len(desc) <= TITLE_MAX_LEN else desc[:TITLE_MAX_LEN].rsplit(" ", 1)[0] + "…",
+        "title": extract_title(desc),
         "cvss": cvss,
         "cvss_vector": vector,
         "severity": severity_for(cvss),
