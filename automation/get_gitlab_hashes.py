@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-
 import json
-import subprocess
+import os
 import sys
-import requests
 import time
+
+import requests
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from lib import registry  # noqa: E402
 
 global builds
 global ignore_list
 builds = ["gitlab-ce", "gitlab-ee"]
 ignore_list = ["rc", "nightly", "latest"]
+
 
 def main(argv):
     if(len(argv) == 0):
@@ -17,59 +21,34 @@ def main(argv):
     hashes_dict_file = argv[0]
 
     fetch_all_tags = False
+    budget_minutes = 100
     if (len(argv) > 1):
-        fetch_all_tags = argv[1] == "--fetch-all-tags"
+        fetch_all_tags = "--fetch-all-tags" in argv[1:]
+        for arg in argv[1:]:
+            if arg.startswith("--budget-minutes="):
+                budget_minutes = float(arg.split("=", 1)[1])
 
-    hashes = process_missing_tags(hashes_dict_file, fetch_all_tags)
+    hashes = process_missing_tags(hashes_dict_file, fetch_all_tags, budget_minutes)
     write_hashes_dict(hashes, hashes_dict_file)
 
 
-def get_manifest_hashes(branch, version):
+def get_manifest_hashes(build, version):
+    repo = f"gitlab/{build}"
+    print("Processing image: %s:%s" % (repo, version))
+
+    def log(msg):
+        print("  " + msg)
+
     try:
-        subprocess.check_output("docker rm tmp_gitlab", shell=True)
-    except:
-        pass
+        webpack_hash, commit_hash = registry.fetch_manifest_hash(repo, version, log=log)
+    except Exception as e:
+        print("Failed to fetch %s:%s (%s)" % (repo, version, e))
+        webpack_hash, commit_hash = None, None
 
-    image = "gitlab/%s:%s" % (branch, version)
-    print("Processing image: %s" % image)
-
-    # pull tag
-    subprocess.check_output("docker create --name='tmp_gitlab' %s" % image, shell=True)
-    subprocess.check_output("docker export tmp_gitlab -o tmp_gitlab.tar", shell=True)
-
-    # get version webpack assets hash
-    try:
-        subprocess.check_output("tar -xf tmp_gitlab.tar opt/gitlab/embedded/service/gitlab-rails/public/assets/webpack/manifest.json --strip-components=8", shell=True)
-        with open("manifest.json", "r") as file:
-            raw_manifest = file.read()
-        manifest = json.loads(raw_manifest)
-        webpack_hash = str(manifest["hash"])
-        subprocess.check_output("rm manifest.json", shell=True)
-    except:
-        webpack_hash = None
-        print("Failed to get webpack hash for %s" % image)
-
-    try:        
-        subprocess.check_output("tar -xf tmp_gitlab.tar opt/gitlab/version-manifest.json --strip-components=2", shell=True)
-        # get version commit hash
-        with open("version-manifest.json", "r") as file:
-            raw_version_manifest = file.read()
-        version_manifest = json.loads(raw_version_manifest)
-        commit_hash = str(version_manifest["software"]["gitlab-rails"]["locked_version"])
-        subprocess.check_output("rm version-manifest.json", shell=True)
-    except:
-        print("Failed to get commit hash for %s" % image)
-        commit_hash = None
-
-
-    # cleanup
-    try:
-        subprocess.check_output("rm tmp_gitlab.tar", shell=True)
-        subprocess.check_output("docker system prune --all --force", shell=True)
-        subprocess.check_output("docker rmi %s -f" % image, shell=True)
-        subprocess.check_output("docker rm tmp_gitlab", shell=True)
-    except:
-        pass
+    if webpack_hash is None:
+        print("Failed to get webpack hash for %s:%s" % (repo, version))
+    if commit_hash is None:
+        print("Failed to get commit hash for %s:%s" % (repo, version))
 
     return {
         "webpack_hash": webpack_hash,
@@ -130,9 +109,10 @@ def write_processed_tags(processed):
         json.dump(processed, output, indent=4, sort_keys=True)
 
 
-def process_missing_tags(hashes_dict_file, fetch_all_tags=False):
+def process_missing_tags(hashes_dict_file, fetch_all_tags=False, budget_minutes=100):
     hashes = load_hashes_dict(hashes_dict_file)
     processed = load_processed_tags()
+    deadline = time.monotonic() + budget_minutes * 60
 
     # process missing tags
     for build in builds:
@@ -142,8 +122,14 @@ def process_missing_tags(hashes_dict_file, fetch_all_tags=False):
             if(
                 not any(ignore in version for ignore in ignore_list)
                 and
-                not any(processed in version for processed in processed[build])
+                version not in processed[build]
             ):
+                if time.monotonic() > deadline:
+                    print("Time budget (%s min) exhausted, stopping -- remaining tags will be picked up next run" % budget_minutes)
+                    write_processed_tags(processed)
+                    write_hashes_dict(hashes, hashes_dict_file)
+                    return hashes
+
                 clean_version = version[:version.index('-')]
                 hash = get_manifest_hashes(build, version)
 

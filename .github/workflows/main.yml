@@ -18,10 +18,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: pip install requests
       - name: Process missing tags
         working-directory: ./automation
         run: |
-          python get_gitlab_hashes.py ../gitlab_hashes.json
+          python get_gitlab_hashes.py ../gitlab_hashes.json --budget-minutes=100
       - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: automatic update
