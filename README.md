@@ -81,24 +81,11 @@ one.
 
 ---
 
-## What you need
-
-- Python 3.9 or newer. No extra packages are needed for `scan.py` and
-  `verify_version.py`.
-- The `automation/` update scripts need an extra package:
-`pip install requests`.
-- The `gitlab_hashes.json` and `gitlab_cves.json` files that come with
-  this repo. They're already included and kept up to date automatically,
-  see below.
-
----
-
 ## Quick start
 
 ```
-git clone <this repo>
+git clone https://github.com/zahidec0de/gitlab-vuln-scan.git
 cd gitlab-vuln-scan
-python3 scan.py gitlab.example.com:443
 ```
 
 ---
