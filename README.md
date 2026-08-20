@@ -122,7 +122,6 @@ python3 scan.py --cves gitlab.example.com:443
 ```
 python3 verify_version.py --target gitlab.example.com:443 --version 17.4.2 --edition ee
 ```
-This gives a plain CONFIRMED or MISMATCH answer.
 
 **"I want the results in a format I can feed into another tool or report."**
 ```
