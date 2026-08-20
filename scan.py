@@ -33,6 +33,8 @@ patch level. Pin it with verify_version.py first.
 
 USAGE
   python3 scan.py HOST:PORT [HOST:PORT ...]
+  python3 scan.py -l targets.txt                         # one host:port per line
+  python3 scan.py -l targets.txt HOST:PORT                # file + extra targets combined
   python3 scan.py --cves HOST:PORT [HOST:PORT ...]       # + CVE audit table
   python3 scan.py --cves --cve CVE-2026-15217 HOST:PORT  # audit one CVE only
   python3 scan.py --subdir /gitlab HOST:PORT             # GitLab under a sub-path
@@ -185,11 +187,14 @@ def print_text(r, show_all_cves=False):
                 [("fetched from", f"{r['evidence']['signin_url']} (gon.revision)")],
             ))
         for q in r["evidence"]["gitlab_com_queries"] or []:
-            if q["matched_tags"]:
-                evidence_rows.append((
-                    "resolved via", q["url"],
-                    [("matching tags", ", ".join(q["matched_tags"]))],
-                ))
+            if q["confirmed_tags"]:
+                sub = [("matching tags", ", ".join(q["confirmed_tags"]))]
+                if q["descendant_tags"]:
+                    sub.append((
+                        "later releases built on this commit",
+                        ", ".join(q["descendant_tags"]) + " (ruled out: their own tag commit differs)",
+                    ))
+                evidence_rows.append(("resolved via", q["url"], sub))
         if r["evidence"]["hashdb_matched_key"]:
             evidence_rows.append((
                 "matched in", r["evidence"]["hashdb_source"],
@@ -203,8 +208,14 @@ def print_text(r, show_all_cves=False):
             f"curl -sk {r['evidence']['manifest_url']} | python3 -c \"import json,sys; print(json.load(sys.stdin)['hash'])\"",
         )]
         for q in r["evidence"]["gitlab_com_queries"] or []:
-            if q["matched_tags"]:
+            if q["confirmed_tags"]:
                 verify_items.append(("gitlab.com lookup", f"curl -s '{q['url']}'"))
+                for tag_name in q["confirmed_tags"]:
+                    tag_url = f"https://gitlab.com/api/v4/projects/{q['project_id']}/repository/tags/{tag_name}"
+                    verify_items.append((
+                        f"Confirm {tag_name} exactly",
+                        f"curl -s '{tag_url}' | python3 -c \"import json,sys; print(json.load(sys.stdin)['commit']['id'])\"",
+                    ))
         if r["ambiguous"]:
             verify_items.append((
                 "Pin exact version",
@@ -275,7 +286,8 @@ def print_summary(results, show_cves):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("targets", nargs="+", help="host:port, e.g. gitlab.example.com:443")
+    ap.add_argument("targets", nargs="*", help="host:port, e.g. gitlab.example.com:443")
+    ap.add_argument("-l", "--input-list", default=None, help="file with one host:port per line (blank lines and lines starting with # are skipped)")
     ap.add_argument("--subdir", default="", help="GitLab installed under a sub-path, e.g. /gitlab")
     ap.add_argument("--timeout", type=float, default=15, help="per-request timeout in seconds (default: 15)")
     ap.add_argument("--no-insecure", action="store_true", help="verify TLS certs (off by default, since many internal instances use self-signed certs)")
@@ -290,6 +302,20 @@ def main():
     ap.add_argument("--json", action="store_true", help="output machine-readable JSON instead of text")
     args = ap.parse_args()
 
+    targets = list(args.targets)
+    if args.input_list:
+        try:
+            with open(args.input_list, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        targets.append(line)
+        except OSError as e:
+            ap.error(f"--input-list {args.input_list}: {e.strerror}")
+
+    if not targets:
+        ap.error("no targets given: pass host:port arguments, -l/--input-list, or both")
+
     db = hashdb.load(path=args.db, remote=args.remote_db)
     db_source = hashdb.REMOTE_URL if args.remote_db else (args.db or hashdb.LOCAL_PATH)
 
@@ -298,7 +324,7 @@ def main():
         cdb = cve_db.load(path=args.cve_db, remote=args.remote_cve_db)
 
     results = []
-    for t in args.targets:
+    for t in targets:
         r = scan_one(t, args.subdir, args.timeout, not args.no_insecure, db, db_source, args.no_gitlab_com)
         if args.cves and r["status"] == "identified":
             r["cve_audit"] = cve_db.audit(r["versions"], cdb, cve_filter=args.cve)

@@ -9229,6 +9229,37 @@
             "severity": "high",
             "title": "An authenticated user to cause AI usage to be attributed to another namespace, due to improper authorization of identity information"
         },
+        "CVE-2026-19478": {
+            "affected": [
+                {
+                    "before": "18.11.11",
+                    "from": "18.2"
+                },
+                {
+                    "before": "19.0.8",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.1.6",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.2.4",
+                    "from": "19.2"
+                }
+            ],
+            "cvss": 9.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H",
+            "description": "GitLab has remediated a critical issue in GitLab CE/EE affecting all versions from 18.2 before 18.11.11, 19.0 before 19.0.8, 19.1 before 19.1.6, and 19.2 before 19.2.4 that allowed an unauthenticated attacker to remotely modify or delete public projects and user data via a GraphQL directive, due to a code injection vulnerability.",
+            "published": "2026-08-18",
+            "references": [
+                "https://www.cve.org/CVERecord?id=CVE-2026-19478",
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-2-4-released/",
+                "https://hackerone.com/hiimguardian"
+            ],
+            "severity": "critical",
+            "title": "Code injection through a GraphQL directive enables unauthenticated attackers to modify or delete public projects"
+        },
         "CVE-2026-2104": {
             "affected": [
                 {
@@ -11057,5 +11088,5 @@
     },
     "schema_version": 1,
     "source": "NVD (services.nvd.nist.gov) + GitLab official patch-release notes (docs.gitlab.com/releases/patches/)",
-    "updated": "2026-08-16"
+    "updated": "2026-08-19"
 }

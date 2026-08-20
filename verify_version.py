@@ -85,8 +85,11 @@ def main():
         "docker_ref": docker_ref,
         "live_hash": None,
         "live_hash_source": None,
+        "live_commit_hash": None,
         "reference_hash": None,
         "reference_hash_source": f"{docker_ref}, Docker Hub registry, streamed",
+        "reference_commit_hash": None,
+        "commit_checked": False,
         "result": None,
         "cve_audit": None,
         "errors": [],
@@ -97,6 +100,7 @@ def main():
     result["errors"].extend(fp["errors"])
     result["live_hash"] = fp["webpack_hash"]
     result["live_hash_source"] = fp["manifest_url"]
+    result["live_commit_hash"] = fp["commit_hash"]
 
     if fp["webpack_hash"] is None:
         result["result"] = "error"
@@ -126,17 +130,34 @@ def main():
 
     log(f"Reference webpack hash for {tag}: {webpack_hash}", args.json)
 
-    if fp["webpack_hash"] == webpack_hash:
-        result["result"] = "confirmed"
-        if args.cves:
-            cdb = cve_db.load(path=args.cve_db, remote=args.remote_cve_db)
-            result["cve_audit"] = cve_db.audit([args.version], cdb, cve_filter=args.cve)
-        _emit(result, args.json, args.all_cves)
-        sys.exit(0)
-    else:
+    if fp["webpack_hash"] != webpack_hash:
         result["result"] = "mismatch"
         _emit(result, args.json, args.all_cves)
         sys.exit(1)
+
+    # Webpack hash matches, but that alone is not enough: some patch releases
+    # ship an identical frontend bundle (e.g. 18.11.7, .8, .9, .11 all share
+    # d6a77cf456c325839dc9), so a webpack-only match can "confirm" the wrong
+    # patch level. Cross-check the gitlab-rails build commit too whenever
+    # both sides have one - it's what actually pins the exact patch.
+    if fp["commit_hash"] and commit_hash:
+        result["commit_checked"] = True
+        if not commit_hash.startswith(fp["commit_hash"]):
+            result["result"] = "mismatch"
+            result["commit_mismatch_note"] = (
+                "webpack hash matches, but the build commit does not - this webpack "
+                "hash is shared by more than one patch release, and the target is running "
+                "a different one than claimed"
+            )
+            _emit(result, args.json, args.all_cves)
+            sys.exit(1)
+
+    result["result"] = "confirmed"
+    if args.cves:
+        cdb = cve_db.load(path=args.cve_db, remote=args.remote_cve_db)
+        result["cve_audit"] = cve_db.audit([args.version], cdb, cve_filter=args.cve)
+    _emit(result, args.json, args.all_cves)
+    sys.exit(0)
 
 
 def _emit(result, as_json, show_all_cves=False):
@@ -154,6 +175,13 @@ def _emit(result, as_json, show_all_cves=False):
         kv("Claimed", f"GitLab {e} {fmt.highlight(v)}")
         kv("Live hash", f"{result['live_hash']} (from {result['live_hash_source']})")
         kv("Reference hash", f"{result['reference_hash']} (from {result['reference_hash_source']})")
+        if result["commit_checked"]:
+            kv("Live commit", result["live_commit_hash"])
+            kv("Reference commit", f"{result['reference_commit_hash']} (from {result['docker_ref']})")
+        else:
+            kv("Note", "webpack hash matched, but the build commit could not be cross-checked "
+                        "(gon.revision not exposed on this target) - if this webpack hash turns out "
+                        "to be shared with a sibling patch release, this can't rule those out")
         if result["cve_audit"] is not None:
             print()
             fmt.print_cve_table(result["cve_audit"], show_all=show_all_cves)
@@ -162,6 +190,10 @@ def _emit(result, as_json, show_all_cves=False):
         kv("Claimed", f"GitLab {e} {v} (not a match)")
         kv("Live hash", f"{result['live_hash']} (from {result['live_hash_source']})")
         kv("Reference hash", f"{result['reference_hash']} (from {result['reference_hash_source']})")
+        if result.get("commit_mismatch_note"):
+            kv("Live commit", result["live_commit_hash"])
+            kv("Reference commit", f"{result['reference_commit_hash']} (from {result['docker_ref']})")
+            kv("Why", result["commit_mismatch_note"])
         kv("Next step", f"python3 scan.py {t} to determine the running version")
     else:
         kv("Status", fmt.color_label("ERROR", "ERROR"))
