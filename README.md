@@ -107,12 +107,6 @@ python3 scan.py -l targets.txt
 ```
 The file and inline targets can be combined: `python3 scan.py -l targets.txt extra-host:443`.
 
-More than one target adds a summary table at the end: one row per server
-with its version and, with `--cves`, its highest CVSS score. With `--cves`
-this is followed by a second table, "Findings", listing every affected CVE
-across all servers in one place, each row carrying its own server and
-version, so it can be copied straight into a report.
-
 **"I want to know if a server has any known vulnerabilities."**
 ```
 python3 scan.py --cves gitlab.example.com:443
