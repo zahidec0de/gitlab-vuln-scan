@@ -58,27 +58,6 @@ names the later patches it could also be, since those happen to share the
 same build. A second command, `verify_version.py`, can pin down the exact
 one.
 
-### How the version is resolved
-
-- **Primary source**: a live query to gitlab.com's own public API
-  (`gitlab-org/gitlab` + `gitlab-org/gitlab-foss`), checked fresh on
-  every run, not a local file that can go stale.
-- **Fetched from the target**: the webpack manifest hash
-  (`/assets/webpack/manifest.json`) and, when exposed, the `gon.revision`
-  build commit hash (`/users/sign_in`).
-- **Commit hash → version**: the commit is sent to gitlab.com's
-  `/repository/commits/{sha}/refs?type=tag` for candidate tags, then each
-  candidate is checked against its own `/repository/tags/{name}`. Only
-  tags whose own tip commit matches exactly are kept; a tag that merely
-  descends from that commit (a later patch built on top) is filtered out.
-- **Webpack hash → version**: used only as a fallback, via the local
-  `gitlab_hashes.json`, when `gon.revision` isn't exposed.
-- **Freshness**: current the moment it runs, since gitlab.com has every
-  release tag as soon as GitLab ships it.
-- **Ambiguity**: If more than one version shares an identical build, the tool names the lowest as the
-  confirmed floor and lists what else it could be; `verify_version.py`
-  pins the exact one by diffing against the real Docker image.
-
 ---
 
 ## Quick start
