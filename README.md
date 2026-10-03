@@ -18,7 +18,7 @@ If multiple versions share the same hash, it confirms the lowest matching versio
 ## Quick start
 
 ```
-git clone <this repo>
+git clone https://github.com/zahidec0de/gitlab-vuln-scan.git
 cd gitlab-vuln-scan
 python3 scan.py gitlab.example.com:443
 ```
@@ -27,12 +27,12 @@ python3 scan.py gitlab.example.com:443
 
 ## Usage cases
 
-**"I have one server and want to know its GitLab version."**
+- **"I have one server and want to know its GitLab version."**
 ```
 python3 scan.py gitlab.example.com:443
 ```
 
-**"I have a list of servers to check."**
+- **"I have a list of servers to check."**
 ```
 python3 scan.py gitlab.example.com:443 10.0.0.5:8443 10.0.0.6:443
 ```
@@ -43,7 +43,7 @@ python3 scan.py -l targets.txt
 The file and inline targets can be combined: `python3 scan.py -l targets.txt extra-host:443`.
 
 
-**"I want to know if a server has any known vulnerabilities."**
+- **"I want to know if a server has any known vulnerabilities."**
 ```
 python3 scan.py --cves gitlab.example.com:443
 ```
@@ -53,23 +53,22 @@ list every CVE that was checked and found NOT VULNERABLE:
 python3 scan.py --cves --all-cves gitlab.example.com:443
 ```
 
-**"I want to scan specific CVE."**
+- **"I want to scan specific CVE."**
 ```
 python3 scan.py --cves --cve CVE-2026-15217 --all-cves gitlab.example.com:443
 ```
 
-**"GitLab is behind a reverse proxy under a sub-path, e.g. `https://host/gitlab`."**
+- **"GitLab is behind a reverse proxy under a sub-path, e.g. `https://host/gitlab`."**
 ```
 python3 scan.py --subdir /gitlab host.example.com:443
 ```
 
-**"A report says a server is running version X, and I want to confirm or disprove that."**
+- **"A report says a server is running version X, and I want to confirm or disprove that."**
 ```
 python3 verify_version.py --target gitlab.example.com:443 --version 17.4.2 --edition ee
 ```
-This gives a plain CONFIRMED or MISMATCH answer.
 
-**"I want the results in a format I can feed into another tool or report."**
+- **"I want the results in a format I can feed into another tool or report."**
 ```
 python3 scan.py --json --cves gitlab.example.com:443
 ```
@@ -78,11 +77,6 @@ python3 scan.py --json --cves gitlab.example.com:443
 
 ## `scan.py`, detect a version and optionally check CVEs
 
-```
-python3 scan.py HOST:PORT [HOST:PORT ...]
-python3 scan.py -l targets.txt
-python3 scan.py --cves HOST:PORT [HOST:PORT ...]
-```
 
 ### Flags
 
@@ -156,24 +150,6 @@ server was unreachable).
 
 ---
 
-## `gitlab_version.nse`, the Nmap version
-
-The same basic technique, packaged as an Nmap script:
-
-```
-nmap <target> -p 443 --script ./gitlab_version.nse
-nmap <target> -p 443 --script ./gitlab_version.nse --script-args subdir=/gitlab
-nmap <target> -p 443 --script ./gitlab_version.nse --script-args showcves
-```
-
-`subdir` works like `--subdir` above. `showcves` adds an online CVE
-lookup through the Vulners service. That lookup uses a different CVE
-source than `scan.py --cves`, so the results can differ.
-
-Use `scan.py` instead if you want the CVE check, the gitlab.com lookup,
-or JSON output. This script does not have those.
-
----
 
 ## Keeping the data up to date
 
@@ -202,6 +178,3 @@ python3 get_gitlab_cves.py ../gitlab_cves.json --since-days 30
 
 Built on the version-fingerprinting idea from
 [righel/gitlab-version-nse](https://github.com/righel/gitlab-version-nse).
-CVE reporting inspired by
-[Simpuar/gitlab-cve-scanner](https://github.com/Simpuar/gitlab-cve-scanner).
-Both Apache-2.0, same license as this project.
