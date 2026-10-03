@@ -222,7 +222,7 @@ def print_text(r, show_all_cves=False):
                 f"python3 verify_version.py --target {r['target']} --version {floor} --edition {edition_flag_for(r['edition'])}",
             ))
         print()
-        print(f"  {fmt.header('Verify manually (copy and run):')}")
+        print(f"  {fmt.header('Verify manually:')}")
         fmt.print_command_list(verify_items, indent="    ")
 
         if r["cve_audit"] is not None:

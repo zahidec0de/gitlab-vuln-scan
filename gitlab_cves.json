@@ -292,6 +292,33 @@
             "severity": "medium",
             "title": "This allows attackers to perform targeted searches with sensitive keywords to get the count of issues containing the searched term.\""
         },
+        "CVE-2024-11222": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "13.0"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 6.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 13.0 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed a developer user to perform actions in the context of another user's merge request commit due to a race condition issue in pipeline creation.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/504395",
+                "https://hackerone.com/reports/2797450"
+            ],
+            "severity": "medium",
+            "title": "A developer user to perform actions in the context of another user's merge request commit due to a race condition issue in pipeline creation"
+        },
         "CVE-2024-11274": {
             "affected": [
                 {
@@ -4066,6 +4093,33 @@
             "severity": "low",
             "title": "Project Maintainers can exploit a vulnerability where they can assign custom roles to users with permissions exceeding their own,"
         },
+        "CVE-2025-10903": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "11.10"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 6.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 11.10 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user could have caused denial of service, due to an unbounded loop triggered by specially crafted input in the SCIM user provisioning feature.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/571842",
+                "https://hackerone.com/reports/3292470"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user could have caused denial of service, due to an unbounded loop triggered by specially crafted input in the SCIM user"
+        },
         "CVE-2025-11042": {
             "affected": [
                 {
@@ -5674,6 +5728,33 @@
             ],
             "severity": "high",
             "title": "An unauthenticated user to cause denial of service by sending specially crafted JSON payloads due to insufficient input validation"
+        },
+        "CVE-2025-14871": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "18.4.6"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 7.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.4.6 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an unauthenticated user to cause denial of service due to improper resource allocation limits in the GraphQL complexity calculation logic.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/584492",
+                "https://hackerone.com/reports/3462311"
+            ],
+            "severity": "high",
+            "title": "An unauthenticated user to cause denial of service due to improper resource allocation limits in the GraphQL complexity calculation logic"
         },
         "CVE-2025-1516": {
             "affected": [
@@ -7793,14 +7874,15 @@
                 }
             ],
             "cvss": 8.5,
-            "cvss_vector": null,
-            "description": "GitLab CE/EE: all versions from 18.8 before 19.0.6, 19.1 before 19.1.4, and 19.2 before 19.2.2. Not yet present in NVD's CVE database at the time this entry was recorded (2026-08-16) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
-            "published": "2026-08-12",
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.8 before 19.0.6, 19.1 before 19.1.4, and 19.2 before 19.2.2 that under certain conditions could have allowed an authenticated user to achieve remote code execution due to a path traversal vulnerability in the package registry.",
+            "published": "2026-08-23",
             "references": [
-                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-2-2-released/"
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/601596",
+                "https://hackerone.com/reports/3754194"
             ],
             "severity": "high",
-            "title": "Remote code execution via path traversal in package registry"
+            "title": "An authenticated user to achieve remote code execution due to a path traversal vulnerability in the package registry"
         },
         "CVE-2026-10086": {
             "affected": [
@@ -7855,6 +7937,31 @@
             ],
             "severity": "high",
             "title": "An authenticated user with developer-role permissions to execute arbitrary client-side code on behalf of a targeted user due to improper"
+        },
+        "CVE-2026-10518": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "17.9"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": null,
+            "description": "GitLab EE: all versions from 17.9 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
+            "published": "2026-09-23",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/"
+            ],
+            "severity": "medium",
+            "title": "Improper access control in GraphQL memberRoles dependentSecurityPolicies resolver"
         },
         "CVE-2026-1069": {
             "affected": [
@@ -8107,6 +8214,33 @@
             "severity": "medium",
             "title": "Incorrect authorization in DAST site profile management could allow a user with Developer role to exfiltrate DAST site profile secrets"
         },
+        "CVE-2026-1168": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "18.4.6"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 7.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.4.6 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an unauthenticated user to cause denial of service due to improper resource allocation limits in the GraphQL complexity calculation logic.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/586586",
+                "https://hackerone.com/reports/3461590"
+            ],
+            "severity": "high",
+            "title": "An unauthenticated user to cause denial of service due to improper resource allocation limits in the GraphQL complexity calculation logic"
+        },
         "CVE-2026-1182": {
             "affected": [
                 {
@@ -8313,6 +8447,32 @@
             "severity": "low",
             "title": "An authenticated user to inject malicious content into project labels titles"
         },
+        "CVE-2026-12910": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "18.6"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 5.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.6 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an authenticated user to bypass SAML SSO sign-in restrictions and authenticate without SSO due to missing authentication enforcement checks.",
+            "published": "2026-09-15",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/603742",
+                "https://hackerone.com/reports/3745561"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user to bypass SAML SSO sign-in restrictions and authenticate without SSO due to missing authentication enforcement checks"
+        },
         "CVE-2026-13113": {
             "affected": [
                 {
@@ -8338,6 +8498,32 @@
             ],
             "severity": "medium",
             "title": "An authenticated user to merge code into a protected branch without the required approvals due to a race condition in approval rule"
+        },
+        "CVE-2026-13210": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "15.7"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 7.7,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 15.7 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an authenticated user to access CI/CD variables outside their intended environment scope due to improper input validation in the environment scope pattern matcher.",
+            "published": "2026-09-15",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/603978",
+                "https://hackerone.com/reports/3655211"
+            ],
+            "severity": "high",
+            "title": "An authenticated user to access CI/CD variables outside their intended environment scope due to improper input validation in the"
         },
         "CVE-2026-1322": {
             "affected": [
@@ -8735,6 +8921,33 @@
             "severity": "high",
             "title": "Cross-site scripting due to improper neutralization of user-controlled values rendered in table cell content by an analytics dashboard"
         },
+        "CVE-2026-15387": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 19.1 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user with developer-role permissions could have influenced the execution environment of Pipeline Execution Policy enforcement jobs, due to improper handling of job dependencies.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/605632",
+                "https://hackerone.com/reports/3754358"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with developer-role permissions could have influenced the execution environment of Pipeline Execution Policy"
+        },
         "CVE-2026-15423": {
             "affected": [
                 {
@@ -9013,6 +9226,33 @@
             "severity": "medium",
             "title": "An authenticated user with group import permissions to create labels in private projects due to improper authorization validation in the"
         },
+        "CVE-2026-16794": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "18.11"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 18.11 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an authenticated user with the Security Manager role to execute arbitrary CI/CD jobs and access protected variables within group projects due to improper authorization controls on compliance framework management.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/606750",
+                "https://hackerone.com/reports/3785754"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with the Security Manager role to execute arbitrary CI/CD jobs and access protected variables within group projects"
+        },
         "CVE-2026-1724": {
             "affected": [
                 {
@@ -9184,6 +9424,33 @@
             "severity": "medium",
             "title": "An authenticated user to view restricted configuration settings due to improper authorization checks on a group settings page"
         },
+        "CVE-2026-18252": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "18.9"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 7.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 18.9 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user with developer-role permissions could have executed arbitrary commands in a CI context, due to the Claude agent processing configuration from a user-controlled source.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/607342",
+                "https://hackerone.com/reports/3863650"
+            ],
+            "severity": "high",
+            "title": "An authenticated user with developer-role permissions could have executed arbitrary commands in a CI context, due to the Claude agent"
+        },
         "CVE-2026-18433": {
             "affected": [
                 {
@@ -9206,6 +9473,19 @@
             ],
             "severity": "medium",
             "title": "An authenticated user to read policy configuration belonging to a namespace they were not authorized to access, due to incorrect"
+        },
+        "CVE-2026-1868": {
+            "affected": [],
+            "cvss": 9.9,
+            "cvss_vector": null,
+            "description": "GitLab AI Gateway (a separate component from core GitLab CE/EE, with its own independent version numbers) versions 18.1.6, 18.2.6, and 18.3.1 before the patched releases 18.6.2, 18.7.1, and 18.8.1 respectively. Not matchable against a core GitLab CE/EE version the way every other entry in this database is -- affected/fixed here are AI Gateway's own release numbers, which do not track core GitLab version numbers 1:1. Check your AI Gateway deployment version directly rather than relying on this tool's GitLab-version audit for this one. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
+            "needs_manual_review": true,
+            "published": "2026-02-06",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/other-patches/patch-release-gitlab-ai-gateway-18-8-1-released/"
+            ],
+            "severity": "critical",
+            "title": "Insecure template expansion in GitLab AI Gateway"
         },
         "CVE-2026-19228": {
             "affected": [
@@ -9250,15 +9530,73 @@
             ],
             "cvss": 9.4,
             "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H",
-            "description": "GitLab has remediated a critical issue in GitLab CE/EE affecting all versions from 18.2 before 18.11.11, 19.0 before 19.0.8, 19.1 before 19.1.6, and 19.2 before 19.2.4 that allowed an unauthenticated attacker to remotely modify or delete public projects and user data via a GraphQL directive, due to a code injection vulnerability.",
-            "published": "2026-08-18",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.2 before 18.11.11, 19.0 before 19.0.8, 19.1 before 19.1.6, and 19.2 before 19.2.4 that under certain conditions could allow an unauthenticated user to remotely modify or delete public projects and user data via a GraphQL directive.",
+            "published": "2026-08-17",
             "references": [
-                "https://www.cve.org/CVERecord?id=CVE-2026-19478",
                 "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-2-4-released/",
-                "https://hackerone.com/hiimguardian"
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/611377",
+                "https://hackerone.com/reports/3926431"
             ],
             "severity": "critical",
-            "title": "Code injection through a GraphQL directive enables unauthenticated attackers to modify or delete public projects"
+            "title": "An unauthenticated user to remotely modify or delete public projects and user data via a GraphQL directive"
+        },
+        "CVE-2026-19619": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.7,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 19.0 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an unauthenticated user to execute arbitrary JavaScript in the context of a targeted user's session due to improper sanitization of pasted HTML content in the Content Editor.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/612792",
+                "https://hackerone.com/reports/3808840"
+            ],
+            "severity": "medium",
+            "title": "An unauthenticated user to execute arbitrary JavaScript in the context of a targeted user's session due to improper sanitization of pasted"
+        },
+        "CVE-2026-19650": {
+            "affected": [
+                {
+                    "before": "18.11.11",
+                    "from": "18.2"
+                },
+                {
+                    "before": "19.0.8",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.1.6",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.2.4",
+                    "from": "19.2"
+                }
+            ],
+            "cvss": 7.1,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:L",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.2 before 18.11.11, 19.0 before 19.0.8, 19.1 before 19.1.6, and 19.2 before 19.2.4 that under certain conditions could have allowed an unauthenticated user to execute mutations via GET requests due to improper request validation in GraphQL multiplex query handling.",
+            "published": "2026-08-17",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-2-4-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/612617",
+                "https://hackerone.com/reports/3903669"
+            ],
+            "severity": "high",
+            "title": "An unauthenticated user to execute mutations via GET requests due to improper request validation in GraphQL multiplex query handling"
         },
         "CVE-2026-2104": {
             "affected": [
@@ -9558,6 +9896,33 @@
             "severity": "high",
             "title": "An authenticated user to add email addresses to targeted user accounts due to improper sanitization of HTML content"
         },
+        "CVE-2026-3035": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "11.3"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 5.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:C/C:L/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 11.3 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user with project Maintainer permissions could have accessed the terminal of a protected environment they were not authorized to use due to improper authorization checks.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/591189",
+                "https://hackerone.com/reports/3529751"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with project Maintainer permissions could have accessed the terminal of a protected environment they were not"
+        },
         "CVE-2026-3073": {
             "affected": [
                 {
@@ -9791,6 +10156,33 @@
             "severity": "medium",
             "title": "An authenticated user to make unintended internal requests through proxy environments under certain conditions due to improper input"
         },
+        "CVE-2026-3855": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "18.2.7"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 3.1,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.2.7 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an authenticated user with project-level permissions to access restricted file contents on the server or cause denial of service due to improper validation of parameters in the Terraform state upload functionality.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/592821",
+                "https://hackerone.com/reports/3575167"
+            ],
+            "severity": "low",
+            "title": "An authenticated user with project-level permissions to access restricted file contents on the server or cause denial of service due to"
+        },
         "CVE-2026-3857": {
             "affected": [
                 {
@@ -9897,6 +10289,58 @@
             ],
             "severity": "low",
             "title": "An authenticated user to gain unauthorized access to resources due to improper caching of authorization decisions"
+        },
+        "CVE-2026-4398": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "18.3"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 5.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 18.3 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user could have assigned compliance frameworks from namespaces they were not authorized to access to their own project, due to missing namespace validation on self-managed instances.",
+            "published": "2026-04-08",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/600360",
+                "https://hackerone.com/reports/3549150"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user could have assigned compliance frameworks from namespaces they were not authorized to access to their own project,"
+        },
+        "CVE-2026-4523": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "15.11"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 3.7,
+            "cvss_vector": null,
+            "description": "GitLab CE/EE: all versions from 15.11 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
+            "published": "2026-09-23",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/"
+            ],
+            "severity": "low",
+            "title": "Missing authorization in GraphQL CI job trace API"
         },
         "CVE-2026-4524": {
             "affected": [
@@ -10792,6 +11236,33 @@
             "severity": "high",
             "title": "An authenticated user with developer-role permissions to execute arbitrary JavaScript in other users' browsers due to improper input"
         },
+        "CVE-2026-7487": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "13.1"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 3.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 13.1 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, an authenticated user with reporter-role permissions who authored a merge request could have reset merge request approval rules due to improper authorization checks.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/598657",
+                "https://hackerone.com/reports/3669140"
+            ],
+            "severity": "low",
+            "title": "An authenticated user with reporter-role permissions who authored a merge request could have reset merge request approval rules due to"
+        },
         "CVE-2026-7492": {
             "affected": [
                 {
@@ -10818,6 +11289,140 @@
             ],
             "severity": "medium",
             "title": "An unauthenticated user to determine the existence of a private project due to improper authorization controls on cross-project reference"
+        },
+        "CVE-2026-7514": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "13.9"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 13.9 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that an authenticated user with developer-role permissions could substitute package file content and hide packages from their owners due to improper authorization checks in the Generic Package Registry.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/598708",
+                "https://hackerone.com/reports/3683678"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with developer-role permissions could substitute package file content and hide packages from their owners due to"
+        },
+        "CVE-2026-77801": {
+            "affected": [
+                {
+                    "before": "19.1.7",
+                    "from": "12.8"
+                },
+                {
+                    "before": "19.2.5",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.1",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 6.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 12.8 before 19.1.7, 19.2 before 19.2.5, and 19.3 before 19.3.1 that, under certain conditions, could have allowed an authenticated user to cause a denial of service affecting background job processing, due to missing object count limits.",
+            "published": "2026-08-26",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/597273"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user to cause a denial of service affecting background job processing, due to missing object count limits"
+        },
+        "CVE-2026-78252": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "15.3"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 8.2,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:L",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 15.3 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that, under certain conditions, an authenticated user could have induced a targeted user to perform unintended state-changing HTTP requests due to improper sanitization of user-controlled data in the Markdown JSON table renderer.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/621447",
+                "https://hackerone.com/reports/3917471"
+            ],
+            "severity": "high",
+            "title": "An authenticated user could have induced a targeted user to perform unintended state-changing HTTP requests due to improper sanitization of"
+        },
+        "CVE-2026-79708": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 8.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:H/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 19.0 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that, under certain conditions could have allowed an authenticated user with developer permissions to execute a policy test pipeline on projects within their group and access protected CI/CD variables restricted to higher-privileged roles, due to insufficient scope validation.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/622477",
+                "https://hackerone.com/reports/3873243"
+            ],
+            "severity": "high",
+            "title": "An authenticated user with developer permissions to execute a policy test pipeline on projects within their group and access protected"
+        },
+        "CVE-2026-8030": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "13.0"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 13.0 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could have allowed an authenticated user to prevent another user from modifying their group settings due to improper validation of group URL slugs during namespace transfers.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/599240",
+                "https://hackerone.com/reports/3689558"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user to prevent another user from modifying their group settings due to improper validation of group URL slugs during"
         },
         "CVE-2026-8144": {
             "affected": [
@@ -10872,6 +11477,33 @@
             "severity": "medium",
             "title": "An authenticated user to cause denial of service through excessive memory consumption due to improper input validation"
         },
+        "CVE-2026-82837": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "10.1.0"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 5.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 10.1.0 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that certain conditions could have allowed an authenticated user to access sensitive credentials and tokens without transiting the expected proxy due to improper authorization checks on internal data emission endpoints.",
+            "published": "2026-09-15",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/610136",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/626540",
+                "https://hackerone.com/reports/3907835"
+            ],
+            "severity": "medium",
+            "title": "Certain conditions could have allowed an authenticated user to access sensitive credentials and tokens without transiting the expected"
+        },
         "CVE-2026-8330": {
             "affected": [
                 {
@@ -10925,6 +11557,66 @@
             "severity": "medium",
             "title": "An authenticated user with minimal access permissions to read work item metadata from private projects due to missing authorization checks"
         },
+        "CVE-2026-84739": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "13.11"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 8.7,
+            "cvss_vector": null,
+            "description": "GitLab CE/EE: all versions from 13.11 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
+            "published": "2026-09-23",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/"
+            ],
+            "severity": "high",
+            "title": "Cross-site scripting in merge request diff viewer"
+        },
+        "CVE-2026-85706": {
+            "affected": [
+                {
+                    "before": "18.11.12",
+                    "from": "18.7"
+                },
+                {
+                    "before": "19.0.9",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.1.8",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 10.0,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.7 before 18.11.12, 19.0 before 19.0.9, 19.1 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that, under certain conditions, an unauthenticated user could have read arbitrary files from the GitLab server due to improper path confinement and missing authentication enforcement in the repository commits API.",
+            "published": "2026-09-12",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/627748",
+                "https://hackerone.com/reports/3909881",
+                "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2026-85706"
+            ],
+            "severity": "critical",
+            "title": "An unauthenticated user could have read arbitrary files from the GitLab server due to improper path confinement and missing authentication"
+        },
         "CVE-2026-8589": {
             "affected": [
                 {
@@ -10951,6 +11643,57 @@
             ],
             "severity": "high",
             "title": "An authenticated user to add unauthorized email addresses to a targeted user's account due to improper sanitization of user-supplied input"
+        },
+        "CVE-2026-86340": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "17.1"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.4,
+            "cvss_vector": null,
+            "description": "GitLab EE: all versions from 17.1 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it is published there.",
+            "published": "2026-09-10",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/"
+            ],
+            "severity": "medium",
+            "title": "Authorization bypass in protected environment approval rules"
+        },
+        "CVE-2026-86341": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "17.1"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 4.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:N/I:H/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 17.1 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that, under certain conditions, an authenticated user with Owner or Maintainer permissions could have silently disabled protected environment deployment approval requirements, allowing unapproved deployments to reach production, due to improper access control checks performed after the protected resource was modified.",
+            "published": "2026-09-16",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-3-2-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/600088"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with Owner or Maintainer permissions could have silently disabled protected environment deployment approval"
         },
         "CVE-2026-8667": {
             "affected": [
@@ -11005,6 +11748,118 @@
             "severity": "medium",
             "title": "An authenticated user to access CI data from a different ref type than intended"
         },
+        "CVE-2026-87719": {
+            "affected": [
+                {
+                    "before": "18.11.12",
+                    "from": "18.3"
+                },
+                {
+                    "before": "19.0.9",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.1.8",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 9.9,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 18.3 before 18.11.12, 19.0 before 19.0.9, 19.1 before 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 that under certain conditions could allow an authenticated user with Duo Chat access to obtain Advanced Search instance configurations and sensitive credentials using a specially crafted GraphQL subscription argument to bypass serialization and perform server object lookup.",
+            "published": "2026-09-12",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/628160",
+                "https://hackerone.com/reports/4012289"
+            ],
+            "severity": "critical",
+            "title": "An authenticated user with Duo Chat access to obtain Advanced Search instance configurations and sensitive credentials using a specially"
+        },
+        "CVE-2026-88765": {
+            "affected": [
+                {
+                    "before": "19.1.8",
+                    "from": "12.3"
+                },
+                {
+                    "before": "19.2.6",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.2",
+                    "from": "19.3"
+                }
+            ],
+            "cvss": 8.5,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 12.3 to 19.1.8, 19.2 before 19.2.6, and 19.3 before 19.3.2 under certain conditions could allow an authenticated user to achieve remote code execution by importing a specially crafted Git project export to overflow the Unicode conversion buffer used in Advanced Search indexing.",
+            "published": "2026-09-15",
+            "references": [
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/627435",
+                "https://hackerone.com/reports/3990469"
+            ],
+            "severity": "high",
+            "title": "An authenticated user to achieve remote code execution by importing a specially crafted Git project export to overflow the Unicode"
+        },
+        "CVE-2026-89078": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 9.9,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:L",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 19.2 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user to execute arbitrary code on the GitLab server due to a double free issue when parsing a specially crafted regular expression in a CI/CD configuration.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/628577",
+                "https://hackerone.com/reports/4019059"
+            ],
+            "severity": "critical",
+            "title": "An authenticated user to execute arbitrary code on the GitLab server due to a double free issue when parsing a specially crafted regular"
+        },
+        "CVE-2026-8937": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "19.0"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": null,
+            "description": "GitLab CE/EE: all versions from 19.0 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1. Not yet present in NVD's CVE database at the time this entry was recorded (2026-09-28) -- affected-range text sourced from GitLab's own patch-release notes; re-verify against NVD once it's published there.",
+            "published": "2026-09-23",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/"
+            ],
+            "severity": "medium",
+            "title": "Missing authorization in Epic Issues REST API"
+        },
         "CVE-2026-9204": {
             "affected": [
                 {
@@ -11030,6 +11885,163 @@
             ],
             "severity": "medium",
             "title": "An authenticated user to read arbitrary files from the Gitaly server and access internal network resources during repository import, due to"
+        },
+        "CVE-2026-92470": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "18.7"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 7.7,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 18.7 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user to access sensitive CI/CD variable values from debug-mode job traces through the Duo AI troubleshooting feature due to missing authorization checks.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/617719"
+            ],
+            "severity": "high",
+            "title": "An authenticated user to access sensitive CI/CD variable values from debug-mode job traces through the Duo AI troubleshooting feature due"
+        },
+        "CVE-2026-92529": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab EE affecting all versions from 19.1 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user with developer-role permissions to bypass admin-configured AI tool governance controls for workflows in namespaces they do not control due to improper authorization checks.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/605431"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with developer-role permissions to bypass admin-configured AI tool governance controls for workflows in namespaces"
+        },
+        "CVE-2026-92530": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "19.1"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 4.3,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 19.1 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user to spoof merge request authorship and attribute content to arbitrary existing users on the target instance due to improper reliance on ephemeral cache state during Direct Transfer imports.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/628379"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user to spoof merge request authorship and attribute content to arbitrary existing users on the target instance due to"
+        },
+        "CVE-2026-92628": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "18.6"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 3.1,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.6 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under a race condition, the MCP search tool's shared state handling could have caused search results to be returned under an incorrect user context.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/621933"
+            ],
+            "severity": "low",
+            "title": "Under a race condition, the MCP search tool's shared state handling could have caused search results to be returned under an incorrect user"
+        },
+        "CVE-2026-92874": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "18.3"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 5.4,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.3 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user with an MCP-scoped token to perform actions beyond the intended scope of that token due to improper authorization checks.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/618614"
+            ],
+            "severity": "medium",
+            "title": "An authenticated user with an MCP-scoped token to perform actions beyond the intended scope of that token due to improper authorization"
+        },
+        "CVE-2026-93577": {
+            "affected": [
+                {
+                    "before": "19.2.7",
+                    "from": "19.2"
+                },
+                {
+                    "before": "19.3.3",
+                    "from": "19.3"
+                },
+                {
+                    "before": "19.4.1",
+                    "from": "19.4"
+                }
+            ],
+            "cvss": 9.9,
+            "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
+            "description": "GitLab has remediated an issue in GitLab CE/EE affecting all versions from 19.2 before 19.2.7, 19.3 before 19.3.3, and 19.4 before 19.4.1 that under certain conditions could have allowed an authenticated user to execute arbitrary code on the GitLab server due to an integer overflow issue when compiling a specially crafted regular expression in a CI/CD configuration.",
+            "published": "2026-09-24",
+            "references": [
+                "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/",
+                "https://gitlab.com/gitlab-org/gitlab/-/work_items/629758",
+                "https://hackerone.com/reports/3995696"
+            ],
+            "severity": "critical",
+            "title": "An authenticated user to execute arbitrary code on the GitLab server due to an integer overflow issue when compiling a specially crafted"
         },
         "CVE-2026-9694": {
             "affected": [
@@ -11088,5 +12100,5 @@
     },
     "schema_version": 1,
     "source": "NVD (services.nvd.nist.gov) + GitLab official patch-release notes (docs.gitlab.com/releases/patches/)",
-    "updated": "2026-08-19"
+    "updated": "2026-09-28"
 }

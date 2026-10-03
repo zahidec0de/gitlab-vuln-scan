@@ -1,9 +1,6 @@
 # gitlab-vuln-scan
 
-This tool finds out what version of GitLab a server is
-running, and checks that version against known CVEs. It works without
-logging in and without nmap, and it shows the raw evidence behind every
-result so you can double-check it manually.
+This tool detects what version of GitLab a server is running and checks that version against known CVEs. It works without logging in and without nmap, and it shows the raw evidence behind every result so you can double-check it manually.
 
 ```
 $ python3 scan.py --cves gitlab.example.com:443
@@ -22,7 +19,7 @@ $ python3 scan.py --cves gitlab.example.com:443
     resolved via          : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
       matching tags       : v17.4.2-ee
 
-  Verify manually (copy and run):
+  Verify manually:
     Webpack hash
       curl -sk https://gitlab.example.com:443/assets/webpack/manifest.json | python3 -c "import json,sys; print(json.load(sys.stdin)['hash'])"
 
@@ -34,13 +31,9 @@ $ python3 scan.py --cves gitlab.example.com:443
     --------------   ----   --------   ----------   ----------------------
     CVE-2026-15217    8.7   high       VULNERABLE   19.0.6; 19.1.4; 19.2.2
 ```
+![Scan output](img/1.png)
+![Scan output](img/2.png)
 
-Section headers (`Evidence:`, `Verify manually:`, `CVE audit:`) are shown
-in color on a real terminal, and the detected version is highlighted so it
-stands out from the surrounding text, along with the status line and each
-CVE's severity. Colors are skipped automatically when the output is not a
-terminal (for example, piped to a file), and always when the `NO_COLOR`
-environment variable is set.
 
 ## Version detection
 
@@ -62,43 +55,6 @@ names the later patches it could also be, since those happen to share the
 same build. A second command, `verify_version.py`, can pin down the exact
 one.
 
-### How the version is resolved
-
-- **Primary source**: a live query to gitlab.com's own public API
-  (`gitlab-org/gitlab` + `gitlab-org/gitlab-foss`), checked fresh on
-  every run, not a local file that can go stale.
-- **Fetched from the target**: the webpack manifest hash
-  (`/assets/webpack/manifest.json`) and, when exposed, the `gon.revision`
-  build commit hash (`/users/sign_in`).
-- **Commit hash → version**: the commit is sent to gitlab.com's
-  `/repository/commits/{sha}/refs?type=tag` for candidate tags, then each
-  candidate is checked against its own `/repository/tags/{name}`. Only
-  tags whose own tip commit matches exactly are kept; a tag that merely
-  descends from that commit (a later patch built on top) is filtered out.
-- **Webpack hash → version**: used only as a fallback, via the local
-  `gitlab_hashes.json`, when `gon.revision` isn't exposed.
-- **Freshness**: current the moment it runs, since gitlab.com has every
-  release tag as soon as GitLab ships it.
-- **Ambiguity**: If more than one version shares an identical build, the tool names the lowest as the
-  confirmed floor and lists what else it could be; `verify_version.py`
-  pins the exact one by diffing against the real Docker image.
-
----
-
-## What you need
-
-- Python 3.9 or newer. No extra packages are needed for `scan.py` and
-  `verify_version.py`.
-- Internet access. The tools talk to the target server, and sometimes to
-  gitlab.com and Docker Hub to look things up.
-- The `gitlab_hashes.json` and `gitlab_cves.json` files that come with
-  this repo. They're already included and kept up to date automatically,
-  see below.
-
-Only the `automation/` update scripts need an extra package:
-`pip install requests`.
-
----
 
 ## Quick start
 
@@ -127,15 +83,25 @@ python3 scan.py -l targets.txt
 ```
 The file and inline targets can be combined: `python3 scan.py -l targets.txt extra-host:443`.
 
-More than one target adds a summary table at the end: one row per server
-with its version and, with `--cves`, its highest CVSS score. With `--cves`
-this is followed by a second table, "Findings", listing every affected CVE
-across all servers in one place, each row carrying its own server and
-version, so it can be copied straight into a report.
 
 **"I want to know if a server has any known vulnerabilities."**
 ```
 python3 scan.py --cves gitlab.example.com:443
+```
+By default only the CVEs the server is vulnerable to are listed. To also
+list every CVE that was checked and found NOT VULNERABLE:
+```
+python3 scan.py --cves --all-cves gitlab.example.com:443
+```
+
+**"I want to scan specific CVE."**
+```
+python3 scan.py --cves --cve CVE-2026-15217 --all-cves gitlab.example.com:443
+```
+
+**"GitLab is behind a reverse proxy under a sub-path, e.g. `https://host/gitlab`."**
+```
+python3 scan.py --subdir /gitlab host.example.com:443
 ```
 
 **"A report says a server is running version X, and I want to confirm or disprove that."**
@@ -159,41 +125,23 @@ python3 scan.py -l targets.txt
 python3 scan.py --cves HOST:PORT [HOST:PORT ...]
 ```
 
-**What it checks, in order:**
-1. The webpack asset hash at `/assets/webpack/manifest.json`.
-2. The build commit shown at `/users/sign_in`. This is only present on
-   some versions, since GitLab has been phasing it out.
-3. If step 2 found something, it is checked directly against gitlab.com's
-   own records. This is exact and always up to date.
-4. Otherwise, the webpack hash is looked up in `gitlab_hashes.json`, a
-   local file built from every official GitLab Docker image.
-
-**With `--cves`**, each version scan.py found is checked against
-`gitlab_cves.json`, a list of known GitLab CVEs and the exact version
-ranges they affect. Each result is one of:
-
-| Result | Meaning |
-|---|---|
-| `VULNERABLE` | the version is inside the affected range |
-| `NOT VULNERABLE` | the version is outside the affected range |
-| `NEEDS VERIFICATION` | scan.py could not pin the exact patch, and the possible versions include both safe and vulnerable ones |
-
-Every result also shows the raw data it was based on (hashes, URLs, API
-responses), along with ready-to-run `curl` commands, so you can
-double-check it yourself instead of trusting this tool blindly.
-
 ### Flags
 
 | Flag | What it does |
 |---|---|
+| `HOST:PORT ...` | one or more targets |
+| `-l FILE`, `--input-list FILE` | read targets from a file, one `host:port` per line (can be combined with inline targets) |
 | `--subdir /path` | GitLab is installed under a sub-path, e.g. behind a reverse proxy at `/gitlab` |
 | `--timeout N` | seconds to wait per request (default 15) |
 | `--no-insecure` | verify TLS certificates (off by default, since many internal servers use self-signed certs) |
-| `--cves` | check the version against known CVEs |
-| `--cve CVE-ID` | only check one specific CVE |
-| `--all-cves` | also list CVEs the target is NOT vulnerable to (off by default, since the list is 400+ long) |
+| `--no-gitlab-com` | skip the gitlab.com commit-hash lookup and use only the local hash database (for example, when there is no internet access) |
+| `--db FILE` | use a different `gitlab_hashes.json` file instead of the one next to the script |
 | `--remote-db` | use the latest hash database from GitHub instead of the local copy |
-| `--remote-cve-db` | same, for the CVE database |
+| `--cves` | check the version against known CVEs |
+| `--cve CVE-ID` | **requires `--cves`**: only check this one CVE |
+| `--all-cves` | **requires `--cves`**: also list CVEs the target is NOT vulnerable to (off by default, since the list is 400+ long) |
+| `--cve-db FILE` | use a different `gitlab_cves.json` file instead of the one next to the script |
+| `--remote-cve-db` | use the latest CVE database from GitHub instead of the local copy |
 | `--json` | print results as JSON instead of plain text |
 
 Exit code: `0` if every target was identified and nothing came back
@@ -209,9 +157,10 @@ yes or no.
 ```
 python3 verify_version.py --target HOST:PORT --version 17.4.2 --edition ee
 python3 verify_version.py --target HOST:PORT --version 17.4.2 --edition ee --cves
+python3 verify_version.py --target HOST:PORT --version 17.4.2 --edition ee --cves --cve CVE-2026-15217 --all-cves
 ```
 
-It downloads the real hash for that exact version straight from Docker
+It downloads the hash for that exact version from Docker
 Hub (no need to install Docker) and compares it byte-for-byte against
 what the server returns. If they match, it is confirmed, not guessed.
 
@@ -225,7 +174,24 @@ $ python3 verify_version.py --target gitlab.example.com:443 --version 17.4.2 --e
   Reference hash : 3f9a1c7e2b8d4f6a1c9e (from gitlab/gitlab-ee:17.4.2-ee.0, Docker Hub registry, streamed)
 ```
 
-Same `--cves`, `--cve`, `--all-cves`, and `--json` flags as `scan.py`.
+### Flags
+
+| Flag | What it does |
+|---|---|
+| `--target HOST:PORT` | **required**: the server to check (one target only) |
+| `--version X.Y.Z` | **required**: the version you want to confirm |
+| `--edition ce\|ee` | **required**: Community (`ce`) or Enterprise (`ee`) edition |
+| `--tag-suffix S` | Docker tag suffix (default `.0`, i.e. `17.4.2-ee.0`) |
+| `--subdir /path` | GitLab is installed under a sub-path |
+| `--timeout N` | seconds to wait per request (default 15) |
+| `--no-insecure` | verify TLS certificates |
+| `--cves` | once the version is confirmed, check it against known CVEs |
+| `--cve CVE-ID` | **requires `--cves`**: only check this one CVE |
+| `--all-cves` | **requires `--cves`**: also list CVEs it is NOT vulnerable to |
+| `--cve-db FILE` | use a different `gitlab_cves.json` file |
+| `--remote-cve-db` | use the latest CVE database from GitHub |
+| `--json` | print results as JSON instead of plain text |
+
 Exit code: `0` confirmed, `1` mismatch, `2` error (for example, the
 server was unreachable).
 
@@ -236,8 +202,14 @@ server was unreachable).
 The same basic technique, packaged as an Nmap script:
 
 ```
-nmap <target> --script ./gitlab_version.nse
+nmap <target> -p 443 --script ./gitlab_version.nse
+nmap <target> -p 443 --script ./gitlab_version.nse --script-args subdir=/gitlab
+nmap <target> -p 443 --script ./gitlab_version.nse --script-args showcves
 ```
+
+`subdir` works like `--subdir` above. `showcves` adds an online CVE
+lookup through the Vulners service. That lookup uses a different CVE
+source than `scan.py --cves`, so the results can differ.
 
 Use `scan.py` instead if you want the CVE check, the gitlab.com lookup,
 or JSON output. This script does not have those.
@@ -258,7 +230,7 @@ automatically once a day through GitHub Actions (see
   straight from NVD (the U.S. National Vulnerability Database) instead of
   depending on a third-party lookup at scan time.
 
-To run either update by hand:
+To run either update manually:
 ```
 cd automation
 python3 get_gitlab_hashes.py ../gitlab_hashes.json

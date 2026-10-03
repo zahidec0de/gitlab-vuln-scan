@@ -2,3 +2,15 @@ gitlab-ce_tags.json
 gitlab-ee_tags.json
 __pycache__/
 *.pyc
+
+# Local-only: real scan targets must never be published
+target
+targets.txt
+
+# Local-only: personal notes
+howto.md
+
+# Tooling / backups not part of the project
+.claude/
+.git.backup/
+.DS_Store
