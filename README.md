@@ -2,58 +2,17 @@
 
 This tool detects what version of GitLab a server is running and checks that version against known CVEs. It works without logging in and without nmap, and it shows the raw evidence behind every result so you can double-check it manually.
 
-```
-$ python3 scan.py --cves gitlab.example.com:443
-
-  Asset        : gitlab.example.com:443
-  Status       : IDENTIFIED
-  Edition      : GitLab enterprise
-  Version      : 17.4.2
-  Method       : gitlab.com commit-hash lookup
-
-  Evidence:
-    webpack manifest hash : 3f9a1c7e2b8d4f6a1c9e
-      fetched from        : https://gitlab.example.com:443/assets/webpack/manifest.json
-    build commit hash     : 7b2e9f0a1d3
-      fetched from        : https://gitlab.example.com:443/users/sign_in (gon.revision)
-    resolved via          : https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag
-      matching tags       : v17.4.2-ee
-
-  Verify manually:
-    Webpack hash
-      curl -sk https://gitlab.example.com:443/assets/webpack/manifest.json | python3 -c "import json,sys; print(json.load(sys.stdin)['hash'])"
-
-    gitlab.com lookup
-      curl -s 'https://gitlab.com/api/v4/projects/278964/repository/commits/7b2e9f0a1d3/refs?type=tag'
-
-  CVE audit (427 checked, 1 flagged):
-    CVE              CVSS   SEVERITY   STATUS       FIXED IN
-    --------------   ----   --------   ----------   ----------------------
-    CVE-2026-15217    8.7   high       VULNERABLE   19.0.6; 19.1.4; 19.2.2
-```
 ![Scan output](img/1.png)
 ![Scan output](img/2.png)
 
 
 ## Version detection
 
-GitLab does not show its version number to users who are not logged
-in. Older tools used to read it off the `/help` page or a hidden field on
-the login page. GitLab has since removed both.
+GitLab does not show its version to users who are not logged in. Older tools read it from `/help` or a hidden login-page field, but GitLab has removed both.
 
-One thing is still public on almost every version: the hash of GitLab's
-own front-end asset bundle, at `/assets/webpack/manifest.json`. The
-browser has to fetch this file before login even works, so it cannot be
-hidden. This tool reads that hash and looks up which GitLab version, or
-versions, produced it.
+The front-end asset hash at `/assets/webpack/manifest.json` is still public. This tool reads that hash and checks which GitLab version or versions produced it.
 
-Sometimes more than one version shares the exact same hash. This usually
-happens when a patch release only changed backend code, not the front
-end. When that happens, the tool states the lowest matching version as
-confirmed, since the server is certainly running at least that one, and
-names the later patches it could also be, since those happen to share the
-same build. A second command, `verify_version.py`, can pin down the exact
-one.
+If multiple versions share the same hash, it confirms the lowest matching version and lists the later patches that could also match. `verify_version.py` can pin down the exact version.
 
 
 ## Quick start
